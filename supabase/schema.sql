@@ -28,9 +28,11 @@ create table if not exists public.articles (
   coche boolean not null default false,
   ajoute_par uuid references auth.users(id) on delete set null,
   source text not null default '',          -- '' (à la main) ou le plat du menu qui l'a demandé
+  note text not null default '',            -- précision libre : « bien mûrs », « la marque bleue »
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.articles add column if not exists note text not null default '';
 create index if not exists articles_foyer on public.articles(foyer_id, coche, created_at);
 
 create table if not exists public.menus (

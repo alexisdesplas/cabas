@@ -1,4 +1,4 @@
-const CACHE = "cabas-v1";
+const CACHE = "cabas-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const ASSETS = [
   "./js/app.js",
   "./js/config.js",
   "./js/data.js",
+  "./js/produits.js",
   "./js/ui.js",
   "./js/views/liste.js",
   "./js/views/repas.js",

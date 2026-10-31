@@ -1,4 +1,4 @@
-import { state, foyer, auth, DEMO } from "../data.js";
+import { state, foyer, auth, synchroniser, DEMO } from "../data.js";
 import { h, icon, btn, navbar, pageHead, pill, field, input, confirmSheet, toast, go, dateShort, plural } from "../ui.js";
 
 const initiales = p => (p || "?").split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase();
@@ -10,14 +10,20 @@ function membresCarte() {
       h("span", { class: "caption" }, m.user_id === state.user.id ? `toi${m.created_at <= state.foyer.created_at ? " · a créé le foyer" : ""}` : `a rejoint le ${dateShort(m.created_at)}`)))));
 }
 
+// Carte compte (proposition Fluide) : tuile, e-mail, état, dernière synchro, Synchroniser · Se déconnecter.
 function compteCarte() {
+  const quand = state.majLe ? new Date(state.majLe).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null;
   return h("div", { class: "card" },
     h("div", { class: "card-head" },
-      h("div", { class: "row-main" }, h("span", { class: "overline" }, "Connecté"), h("span", { class: "body-md medium fort" }, state.user.email)),
-      pill(state.horsLigne ? "Hors ligne" : "À jour", state.horsLigne ? null : "succes")),
-    h("p", { class: "caption" }, DEMO ? "Mode démo : rien ne part sur un serveur." : "La liste et les repas sont sur ton compte, à jour sur les deux téléphones."),
-    btn("Se déconnecter", { variant: "ghost", full: true, onClick: () => confirmSheet({ title: "Se déconnecter ?", message: "La liste reste sur le compte et chez l'autre. Tu la retrouves en te reconnectant.", confirmLabel: "Se déconnecter", cancelLabel: "Rester connecté", onConfirm: () => auth.signOut() }) }));
+      h("div", { class: "tuile" }, icon("cloud")),
+      h("div", { class: "row-main" }, h("span", { class: "overline" }, state.horsLigne ? "Hors ligne" : "Connecté"), h("span", { class: "body-md medium fort" }, state.user.email)),
+      pill(state.horsLigne ? "En attente" : "À jour", state.horsLigne ? "attention" : "succes")),
+    h("p", { class: "caption" }, DEMO ? "Mode démo : rien ne part sur un serveur." : quand ? `Dernière synchro aujourd'hui à ${quand}.` : "Synchronisation en cours."),
+    h("div", { class: "actions" },
+      btn("Synchroniser", { variant: "secondary", onClick: async () => { await synchroniser(); toast("À jour"); } }),
+      btn("Se déconnecter", { variant: "ghost", onClick: () => confirmSheet({ title: "Se déconnecter ?", message: "La liste reste sur le compte et chez l'autre. Tu la retrouves en te reconnectant.", confirmLabel: "Se déconnecter", cancelLabel: "Rester connecté", onConfirm: () => auth.signOut() }) })));
 }
+const bloc = (titre, ...contenu) => h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, titre), ...contenu);
 
 async function partagerCode() {
   const f = state.foyer, texte = `Rejoins notre foyer Cabas avec le code ${f.code} — ${location.origin}${location.pathname}`;
@@ -35,11 +41,10 @@ export function foyerView() {
     h("span", { class: "display-sm num" }, f.code),
     h("p", { class: "body-sm" }, expire ? "Ce code a expiré : demande-en un nouveau." : `L'autre le saisit dans Cabas après avoir créé son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`),
     expire ? btn("Nouveau code", { variant: "primary", size: "lg", full: true, onClick: () => foyer.renouvelerCode() }) : btn("Partager le code", { variant: "primary", size: "lg", full: true, icon: "share", onClick: partagerCode })));
-  body.push(h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Membres")), membresCarte());
-  if (!seul) body.push(btn("Inviter quelqu'un d'autre", { variant: "ghost", full: true, onClick: async () => { if (expire) await foyer.renouvelerCode(); partagerCode(); } }));
-  body.push(h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Rayons du magasin")),
-    h("div", { class: "card" }, h("p", { class: "body-sm fort" }, f.rayons.join(" · ")), h("p", { class: "caption" }, "La liste suit cet ordre. Celui de votre magasin habituel."), btn("Modifier l'ordre", { variant: "ghost", full: true, onClick: () => go("#/foyer/rayons") })));
-  body.push(h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Compte")), compteCarte());
+  body.push(bloc("Membres", membresCarte(), !seul && btn("Inviter quelqu'un d'autre", { variant: "ghost", full: true, onClick: async () => { if (expire) await foyer.renouvelerCode(); partagerCode(); } })));
+  body.push(bloc("Rayons du magasin",
+    h("div", { class: "card" }, h("p", { class: "body-sm", style: { color: "var(--texte-base)" } }, f.rayons.join(" · ")), h("p", { class: "caption" }, "La liste suit cet ordre. Celui de votre magasin habituel."), btn("Modifier l'ordre", { variant: "ghost", full: true, onClick: () => go("#/foyer/rayons") }))));
+  body.push(bloc("Compte", compteCarte()));
   if (!seul) body.push(btn("Quitter le foyer", { variant: "ghost", full: true, onClick: () => confirmSheet({ title: "Quitter le foyer ?", message: `Tu ne verras plus la liste ni les repas de ${f.nom}. L'autre les garde, et pourra t'inviter de nouveau.`, confirmLabel: "Quitter le foyer", cancelLabel: "Rester", destructive: true, onConfirm: () => foyer.quitter() }) }));
   const el = h("div", { class: "screen" }, pageHead("Foyer", sous), h("div", { class: "scroll" }, body));
   return { el, tab: "foyer" };
