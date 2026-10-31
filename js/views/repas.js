@@ -21,7 +21,7 @@ export function repasView() {
     pageHead("Repas de la semaine", `Menu du ${new Date(m.semaine).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} au ${dateShort(fin)}${passe ? " · terminé" : ""}`),
     h("div", { class: "scroll" },
       passe ? hint("Cette semaine est passée. Prépare la suivante quand tu veux.", "neutre")
-        : m.ajoute ? hint(`${plural(m.nbAjoutes ?? "Les", "article ajouté", "articles ajoutés")} à la liste des courses.`, "succes", "check")
+        : m.ajoute ? hint(`${plural(m.repas.flatMap(r => r.ingredients).filter(i => !i.deja_la).length, "article du menu", "articles du menu")} sur la liste des courses.`, "succes", "check")
         : hint(`${plural(menus.aAcheter(m), "article à ajouter", "articles à ajouter")} à la liste.`, null, "cart"),
       !m.ajoute && !passe && btn(`Ajouter les ${menus.aAcheter(m)} articles à la liste`, { variant: "primary", size: "lg", full: true, onClick: () => ajouter(m) }),
       h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Les repas")),
@@ -106,7 +106,7 @@ function etatView() {
       m.repas.map((r, i) => carteRepas(r, i, { changer: true, onOpen: () => detailSheet(r) }))];
   }
   const titre = etat.phase === "propose" ? "Menu proposé" : "Repas de la semaine";
-  const sous = etat.phase === "propose" ? `${plural(n, "repas", "repas")} pour ${d.personnes} · semaine du ${dateShort(lundi(Date.now() + 7 * 86400000 * (new Date().getDay() === 0 ? 1 : 0)))}` : `Envoyé à Claude à ${new Date(etat.depuis || Date.now()).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+  const sous = etat.phase === "propose" ? `${plural(n, "repas", "repas")} pour ${d.personnes} · semaine du ${dateShort(semaineVisee())}` : `Envoyé à Claude à ${new Date(etat.depuis || Date.now()).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
   return { el: h("div", { class: "screen" }, pageHead(titre, sous), h("div", { class: "scroll" }, body)), tab: "repas" };
 }
 
@@ -126,8 +126,11 @@ async function changerPlat(i) {
   } catch (e) { dlg.querySelector(".sheet-body").replaceChildren(hint(`${e.message}. Réessaie dans un instant.`, "danger", "warning")); }
 }
 
+// La semaine visée : celle en cours jusqu'au jeudi, la suivante à partir du vendredi (on fait les courses pour la semaine d'après).
+const semaineVisee = () => { const j = new Date().getDay(); return lundi(Date.now() + (j === 0 || j >= 5 ? 7 * 86400000 : 0)); };
+
 async function accepter(m) {
-  const semaine = dateKey(lundi(new Date().getDay() === 0 ? Date.now() + 86400000 : Date.now()));
+  const semaine = dateKey(semaineVisee());
   const saved = await menus.save({ semaine, demande: { ...demande }, repas: m.repas, ajoute: false });
   etat = null;
   await ajouter(saved);
@@ -135,7 +138,6 @@ async function accepter(m) {
 async function ajouter(m) {
   const n = await menus.ajouterALaListe(m);
   await menus.update({ ajoute: true });
-  m.nbAjoutes = n;
   toast(`${plural(n, "article ajouté", "articles ajoutés")} à la liste`);
   go("#/repas");
 }

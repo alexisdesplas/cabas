@@ -66,7 +66,7 @@ export function foyerChoixView() {
 export function rayonsView() {
   let ordre = [...state.foyer.rayons];
   const liste = h("div", { class: "list" });
-  const dessiner = () => liste.replaceChildren(ordre.map((r, i) => {
+  const dessiner = () => liste.replaceChildren(...ordre.map((r, i) => {
     const row = h("div", { class: "row drag", "data-i": i },
       h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, r)),
       h("span", { class: "icon-btn handle", "aria-hidden": "true" }, icon("dots")));

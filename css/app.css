@@ -165,7 +165,7 @@ button.row:active { background: var(--fond-discret); }
 @keyframes shimmer { 50% { opacity: .5; } }
 
 /* Carte repas (proposition locale) */
-.repas { display: flex; align-items: center; gap: var(--spacing-12); text-align: left; }
+.card.repas { flex-direction: row; align-items: center; gap: var(--spacing-12); text-align: left; }
 .repas .row-main { gap: var(--spacing-4); }
 
 /* Pill */
