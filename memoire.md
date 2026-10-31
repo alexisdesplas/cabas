@@ -44,6 +44,11 @@ Liste de courses partagée entre Alexis et sa copine : chacun se connecte avec s
 - 31/10/2026 — Code écrit et testé en mode démo (`?demo`) dans le navigateur : connexion, création du foyer, ajout d'articles et doublon, menu généré (exemple), ajout des articles à la liste, drag and drop des rayons, fiche article. **Pas encore testé en vrai** : Supabase (projet à créer par Alexis, `supabase/schema.sql` à exécuter, `js/config.js` à remplir), la fonction `api/repas` (variables Vercel `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`) et le déploiement Vercel.
 - 31/10/2026 — API Claude : `claude-opus-5-5`, sortie structurée (`output_config.format` + zod), effort `medium`, `max_tokens` 16000, pas de `fallbacks` (un menu de la semaine ne déclenche pas de refus).
 
+- 31/10/2026 — Retours d'Alexis sur la démo : (1) le champ d'ajout doit **chercher** en tapant → base de ~250 produits courants avec rayon (`js/produits.js`), suggestions sous le champ ; (2) la **quantité** se saisit dans la même phrase (« 3 courgettes », « 500 g riz », « avocats x2 ») ; (3) une **note** libre par article (colonne `articles.note`, champ dans la fiche) ; (4) écran Foyer remis au niveau du Figma (blocs à 8 px, Carte compte avec tuile, pill, Synchroniser · Se déconnecter). Le brouillon du champ survit aux rafraîchissements temps réel.
+- 31/10/2026 — **Dette Figma** : les écrans `Liste — en cours` et `Liste — modifier un article` n'ont pas encore l'état « suggestions en tapant », le placeholder « Ajouter… ex. 3 courgettes, 500 g riz » ni le champ Note. À remettre au niveau du code.
+
+- 31/10/2026 — Projet Supabase `cabas` créé par Alexis (réf. `kjmwfxykxeiszfarvkvj`), clé **publishable** (nouveau format, remplace anon) dans `js/config.js`. Schéma exécuté, puis les droits des rôles de l'API ajoutés à la main (le projet ne les donnait pas par défaut : « permission denied for table foyers ») et reportés dans `schema.sql`. L'anon n'a volontairement aucun droit sur les tables : seul `authenticated` passe, filtré par RLS.
+
 ## Hypothèses ouvertes
 - Prénom de la copine d'Alexis pour le contenu réel des écrans : à demander.
 - Rayons et leur ordre : à valider avec l'ordre du magasin habituel.
