@@ -1,7 +1,7 @@
 # UI — Courses · A · Liste   ·   Statut · Brouillon
 
 **Date** · 31/10/2026 — **Régime** · système — **Mode** · 3 (répliquer Fluide) + 2 (briques manquantes)
-**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Courses · App`, section `A · Liste`, frame `Liste — en cours · 390 · Hardwood` (279:50)
+**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Cabas · App`, section `A · Liste`, frame `Liste — en cours · 390 · Hardwood` (279:50)
 **Système** · Hardwood, mode « Indigo LT » (clair, demandé par Alexis le 31/10/2026) — atteint par : librairie abonnée
 **Largeurs produites** · 390
 **Couverture composants** · 4/7 (Barre d'état et indicateur repris de Fluide, Button ghost, Barre de progression de Fluide ; propositions : barre d'onglets Courses, case à cocher, ligne d'article, champ d'ajout)

@@ -1,6 +1,6 @@
 # User flow — Courses   ·   Statut · Brouillon
 
-**Date** · 31/10/2026 — **Figma** · page `Courses · User flow`, section `User flow — Courses, 4 parcours · écrans de Courses · App à 100 %` (296:2080)
+**Date** · 31/10/2026 — **Figma** · page `Cabas · User flow`, section `User flow — Courses, 4 parcours · écrans de Courses · App à 100 %` (296:2080)
 **Écrans** · à 100 %, jamais réduits (règle d'Alexis du 31/10/2026, écrite dans la skill `flux-ui`). 33 écrans posés (32 + 1 rappel), 29 flèches.
 
 ## Couloirs
@@ -16,4 +16,4 @@
 - Contour orange ou violet autour des écrans qui sortent du nominal.
 
 ## Mise à jour
-Une maquette qui change dans `Courses · App` ne se propage pas : recloner le clone au même endroit (même nom), refaire la pastille si ce qu'elle prouve change.
+Une maquette qui change dans `Cabas · App` ne se propage pas : recloner le clone au même endroit (même nom), refaire la pastille si ce qu'elle prouve change.

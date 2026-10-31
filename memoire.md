@@ -6,7 +6,7 @@ Liste de courses partagée entre Alexis et sa copine : chacun se connecte avec s
 
 ## Fichiers
 - Code : ce dossier. PWA sans build ni dépendance installée (même convention que Tabatime et Fluide) : `index.html` + `js/` + `css/`.
-- Figma : fichier /Perso `QZ94FGPStTONZYIJcXnyHX`, intercalaire `──  MAISON` puis page `Courses · App` (après `Fluide · User flow`, avant `──  MODÈLE`).
+- Figma : fichier /Perso `QZ94FGPStTONZYIJcXnyHX`, intercalaire `──  MAISON` puis page `Cabas · App` (après `Fluide · User flow`, avant `──  MODÈLE`).
 - Livrables UI : `livrables/courses/`.
 
 ## Design system
@@ -30,7 +30,7 @@ Liste de courses partagée entre Alexis et sa copine : chacun se connecte avec s
 - 31/10/2026 — Backend Supabase, connexion e-mail + mot de passe (chacun son compte, on sait qui a ajouté quoi). Choix d'Alexis.
 - 31/10/2026 — App en light mode : Hardwood « Indigo LT » (demande d'Alexis), au lieu d'Indigo DT de Fluide.
 - 31/10/2026 — Imports de librairie (icônes Phosphor) : par le serveur Figma officiel (`use_figma`), Bridge expire comme pour Fluide.
-- 31/10/2026 — Écran de référence `Liste — en cours` (279:50) composé, en attente de validation. Propositions locales dans la section dédiée de `Courses · App` : barre d'onglets (Liste, Repas, Foyer), case à cocher, ligne d'article, champ d'ajout.
+- 31/10/2026 — Écran de référence `Liste — en cours` (279:50) composé, en attente de validation. Propositions locales dans la section dédiée de `Cabas · App` : barre d'onglets (Liste, Repas, Foyer), case à cocher, ligne d'article, champ d'ajout.
 
 - 31/10/2026 — Cadre de `Liste — en cours` validé par Alexis (« Oui, continue »). Composés : A · Liste (5 états) et B · Repas de la semaine (5 états : formulaire, Claude prépare, menu proposé, menu de la semaine, erreur). Reste C · Compte et foyer.
 - 31/10/2026 — Modifier un article = écran dédié (règle de Fluide) ; ajout rapide = champ en haut de liste.
@@ -38,7 +38,11 @@ Liste de courses partagée entre Alexis et sa copine : chacun se connecte avec s
 - 31/10/2026 — Cas limites ajoutés (32 écrans) : Liste 8, Repas 10, Compte et foyer 14. Livrables : `livrables/courses/ui-liste.md`, `ui-repas.md`, `ui-compte.md`, `user-flow.md`.
 - 31/10/2026 — Ordre des rayons en drag and drop (poignée DotsSixVertical), pas de flèches monter / descendre. Demande d'Alexis.
 - 31/10/2026 — Un seul « Se déconnecter » : celui de la Carte compte (Fluide). Remarque d'Alexis.
-- 31/10/2026 — Page `Courses · User flow` : 4 couloirs, écrans **à 100 %** (règle ferme d'Alexis, skill `flux-ui` corrigée : plus de clones à 50 %).
+- 31/10/2026 — Page `Cabas · User flow` : 4 couloirs, écrans **à 100 %** (règle ferme d'Alexis, skill `flux-ui` corrigée : plus de clones à 50 %).
+
+- 31/10/2026 — Nom **Cabas** accepté par Alexis (dossier renommé `cabas`, pages Figma renommées `Cabas · App` et `Cabas · User flow`). Dépôt public https://github.com/alexisdesplas/cabas (branche `main`), créé avec son feu vert.
+- 31/10/2026 — Code écrit et testé en mode démo (`?demo`) dans le navigateur : connexion, création du foyer, ajout d'articles et doublon, menu généré (exemple), ajout des articles à la liste, drag and drop des rayons, fiche article. **Pas encore testé en vrai** : Supabase (projet à créer par Alexis, `supabase/schema.sql` à exécuter, `js/config.js` à remplir), la fonction `api/repas` (variables Vercel `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`) et le déploiement Vercel.
+- 31/10/2026 — API Claude : `claude-opus-5-5`, sortie structurée (`output_config.format` + zod), effort `medium`, `max_tokens` 16000, pas de `fallbacks` (un menu de la semaine ne déclenche pas de refus).
 
 ## Hypothèses ouvertes
 - Prénom de la copine d'Alexis pour le contenu réel des écrans : à demander.

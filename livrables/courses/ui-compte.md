@@ -1,7 +1,7 @@
 # UI — Courses · C · Compte et foyer   ·   Statut · Brouillon
 
 **Date** · 31/10/2026 — **Régime** · système — **Mode** · 3 (écrans Compte de Fluide, passés en Indigo LT) + 2
-**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Courses · App`, section `C · Compte et foyer` (288:801)
+**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Cabas · App`, section `C · Compte et foyer` (288:801)
 **Système** · Hardwood, mode « Indigo LT » — librairie abonnée
 **Largeurs produites** · 390
 

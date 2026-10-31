@@ -1,7 +1,7 @@
 # UI — Courses · B · Repas de la semaine   ·   Statut · Brouillon
 
 **Date** · 31/10/2026 — **Régime** · système — **Mode** · 3 (cadre de `Liste — en cours`, validé par Alexis le 31/10/2026) + 2
-**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Courses · App`, section `B · Repas de la semaine` (282:521)
+**Figma** · https://www.figma.com/design/QZ94FGPStTONZYIJcXnyHX/%2FPerso — page `Cabas · App`, section `B · Repas de la semaine` (282:521)
 **Système** · Hardwood, mode « Indigo LT » — librairie abonnée
 **Largeurs produites** · 390
 
