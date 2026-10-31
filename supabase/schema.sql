@@ -121,6 +121,12 @@ create policy articles_tout on public.articles for all using (foyer_id = public.
 drop policy if exists menus_tout on public.menus;
 create policy menus_tout on public.menus for all using (foyer_id = public.mon_foyer()) with check (foyer_id = public.mon_foyer());
 
+-- Droits des rôles de l'API (certains projets ne les donnent pas par défaut). Les règles RLS ci-dessus font le tri ensuite.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.foyers, public.membres, public.articles, public.menus to authenticated;
+grant execute on function public.mon_foyer(), public.nouveau_code(), public.creer_foyer(), public.rejoindre_foyer(text), public.quitter_foyer(), public.renouveler_code() to authenticated;
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
+
 -- Temps réel : l'autre téléphone voit les changements sans recharger.
 do $$ begin
   alter publication supabase_realtime add table public.articles;
