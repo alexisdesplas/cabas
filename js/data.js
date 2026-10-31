@@ -82,7 +82,7 @@ const demo = {
   async quitterFoyer() { this.st.foyer = null; this.save(); this.pousser(); },
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
-  async addArticle(a) { this.st.articles.push({ id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
+  async addArticle(a) { this.st.articles.push({ id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async updateArticle(id, patch) { Object.assign(this.st.articles.find(a => a.id === id), patch, { updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async removeArticles(ids) { this.st.articles = this.st.articles.filter(a => !ids.includes(a.id)); state.majLe = Date.now(); this.save(); this.pousser(); },
   async saveMenu(menu) { this.st.menu = { id: uid(), created_at: new Date().toISOString(), ajoute: false, ...menu }; this.save(); this.pousser(); return this.st.menu; },
@@ -178,7 +178,7 @@ const sb = {
   async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
   async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
   async addArticle(a) {
-    const row = { id: crypto.randomUUID(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", ...a };
+    const row = { id: crypto.randomUUID(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
     await this.envoyer(() => this.client.from("articles").insert(row));
   },
@@ -206,6 +206,8 @@ const sb = {
 
 const moteur = DEMO ? demo : sb;
 export const init = () => moteur.init();
+// « Synchroniser » : relit tout depuis le serveur (en démo, relit le localStorage).
+export const synchroniser = async () => { if (moteur.charger) await moteur.charger(); else moteur.pousser(); state.majLe = Date.now(); notify(); };
 export const auth = { signUp: (p, e, m) => moteur.signUp(p, e, m), signIn: (e, m) => moteur.signIn(e, m), signOut: () => moteur.signOut(), resetPassword: e => moteur.resetPassword(e), updatePassword: m => moteur.updatePassword(m) };
 export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
 export const articles = {

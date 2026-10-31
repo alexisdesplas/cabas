@@ -102,7 +102,14 @@ p { margin: 0; }
 .card { background: var(--fond-carte); border: 1px solid var(--bord-discret); border-radius: var(--radius-md); padding: var(--spacing-16); display: flex; flex-direction: column; gap: var(--spacing-12); }
 .card.center { align-items: center; text-align: center; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-8); }
-.section-title { display: flex; align-items: center; justify-content: space-between; margin: var(--spacing-8) 0 calc(var(--spacing-8) * -1); min-height: 24px; }
+/* Titre de bloc : 16 px après la carte précédente, 8 px avant la sienne (comme les blocs Figma). */
+.section-title { display: flex; align-items: center; justify-content: space-between; margin: 0 0 calc(var(--spacing-8) * -1); min-height: 24px; }
+.section-title .btn { margin: -8px 0; }
+.bloc { display: flex; flex-direction: column; gap: var(--spacing-8); }
+.tuile { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-texte); display: grid; place-items: center; flex: none; }
+.tuile svg { width: 22px; height: 22px; }
+.actions { display: flex; gap: var(--spacing-12); }
+.actions .btn { flex: 1; }
 .list { background: var(--fond-carte); border: 1px solid var(--bord-discret); border-radius: var(--radius-md); overflow: hidden; }
 .row { display: flex; align-items: center; gap: var(--spacing-12); min-height: 56px; padding: var(--spacing-12) var(--spacing-16); width: 100%; border: 0; background: none; text-align: left; color: inherit; }
 .row + .row { border-top: 1px solid var(--bord-discret); }
@@ -131,6 +138,12 @@ button.row:active { background: var(--fond-discret); }
 .add button { width: 44px; height: 44px; border-radius: var(--radius-md); border: 0; background: var(--accent-base); color: var(--texte-inverse); display: grid; place-items: center; flex: none; }
 .add button svg { width: 20px; height: 20px; }
 .add button:disabled { background: var(--fond-discret); color: var(--texte-discret); }
+/* Suggestions sous le champ : produits de la base, puis « Ajouter « … » » */
+.add-wrap { display: flex; flex-direction: column; gap: var(--spacing-8); }
+.suggest { background: var(--fond-carte); border: 1px solid var(--bord-discret); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 8px 24px var(--ombre); }
+.suggest .row { min-height: 48px; padding: var(--spacing-8) var(--spacing-16); }
+.suggest .row .plus { width: 24px; height: 24px; color: var(--accent-texte); flex: none; }
+.suggest .row.libre .fort { color: var(--accent-texte); }
 
 /* Compteur et barre de progression */
 .count { display: flex; align-items: baseline; gap: var(--spacing-12); }
