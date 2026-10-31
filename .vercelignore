@@ -1,0 +1,6 @@
+# Vercel ne reçoit que l'app et la fonction : pas les notes de conception ni le contexte Claude.
+memoire.md
+livrables/
+CLAUDE.md
+.claude/
+supabase/

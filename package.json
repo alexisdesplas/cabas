@@ -1,0 +1,16 @@
+{
+  "name": "cabas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Liste de courses partagée à deux, avec les repas de la semaine préparés par Claude.",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "serve": "python3 -m http.server 8766"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "zod": "^3.24.2"
+  }
+}
