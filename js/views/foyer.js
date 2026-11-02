@@ -20,7 +20,7 @@ function compteCarte() {
       pill(state.horsLigne ? "En attente" : "À jour", state.horsLigne ? "attention" : "succes")),
     h("p", { class: "caption" }, DEMO ? "Mode démo : rien ne part sur un serveur." : quand ? `Dernière synchro aujourd'hui à ${quand}.` : "Synchronisation en cours."),
     h("div", { class: "actions" },
-      btn("Synchroniser", { variant: "secondary", onClick: async () => { await synchroniser(); toast("À jour"); } }),
+      btn("Synchroniser", { variant: "secondary", onClick: async () => { await synchroniser(); toast("À jour", { tone: "succes" }); } }),
       btn("Se déconnecter", { variant: "ghost", onClick: () => confirmSheet({ title: "Se déconnecter ?", message: "La liste reste sur le compte et chez l'autre. Tu la retrouves en te reconnectant.", confirmLabel: "Se déconnecter", cancelLabel: "Rester connecté", onConfirm: () => auth.signOut() }) })));
 }
 const bloc = (titre, ...contenu) => h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, titre), ...contenu);
@@ -28,7 +28,7 @@ const bloc = (titre, ...contenu) => h("div", { class: "bloc" }, h("h2", { class:
 async function partagerCode() {
   const f = state.foyer, texte = `Rejoins notre foyer Cabas avec le code ${f.code} — ${location.origin}${location.pathname}`;
   if (navigator.share) { try { await navigator.share({ title: "Cabas", text: texte }); } catch {} return; }
-  try { await navigator.clipboard.writeText(f.code); toast("Code copié"); } catch { toast(f.code); }
+  try { await navigator.clipboard.writeText(f.code); toast("Code copié", { tone: "succes" }); } catch { toast(f.code); }
 }
 
 export function foyerView() {
@@ -48,8 +48,6 @@ export function foyerView() {
   if (seul) body.push(carteCode);
   body.push(bloc("Membres", membresCarte()));
   if (!seul) body.push(carteCode);
-  body.push(bloc("Rayons du magasin",
-    h("div", { class: "card" }, h("p", { class: "body-sm", style: { color: "var(--texte-base)" } }, f.rayons.join(" · ")), h("p", { class: "caption" }, "La liste suit cet ordre. Celui de votre magasin habituel."), btn("Modifier l'ordre", { variant: "ghost", full: true, onClick: () => go("#/foyer/rayons") }))));
   body.push(bloc("Compte", compteCarte()));
   if (!seul) body.push(btn("Quitter le foyer", { variant: "ghost", full: true, onClick: () => confirmSheet({ title: "Quitter le foyer ?", message: `Tu ne verras plus la liste ni les repas de ${f.nom}. L'autre les garde, et pourra t'inviter de nouveau.`, confirmLabel: "Quitter le foyer", cancelLabel: "Rester", destructive: true, onConfirm: () => foyer.quitter() }) }));
   const el = h("div", { class: "screen" }, pageHead("Foyer", sous), h("div", { class: "scroll" }, body));
@@ -58,16 +56,13 @@ export function foyerView() {
 
 // Connecté sans foyer : créer, ou rejoindre avec un code.
 export function foyerChoixView() {
-  let code = "", err = null;
-  const champ = input({ placeholder: "ABC-123", autocapitalize: "characters", autocomplete: "off", "aria-label": "Code d'invitation", onInput: e => { code = e.target.value; } });
   const rendu = () => { const el = h("div", { class: "screen no-tabs" },
     pageHead("Votre foyer", "Une seule liste pour vous deux. L'un crée le foyer, l'autre le rejoint avec le code."),
     h("div", { class: "scroll" },
       h("div", { class: "card" }, h("h2", { class: "heading-md" }, "Créer notre foyer"), h("p", { class: "body-sm" }, "Tu reçois un code à partager. La liste démarre vide."),
-        btn("Créer le foyer", { variant: "primary", size: "lg", full: true, onClick: () => foyer.creer().catch(e => toast(e.message)) })),
-      h("div", { class: "card" }, h("h2", { class: "heading-md" }, "Rejoindre un foyer"),
-        field({ label: "Code d'invitation", input: champ, help: "Demande-le à la personne qui a créé le foyer.", error: err }),
-        btn("Rejoindre", { variant: "secondary", size: "lg", full: true, onClick: async () => { try { await foyer.rejoindre(code.trim()); } catch (e) { err = e.message; const n = rendu(); document.getElementById("app").replaceChildren(n); } } })),
+        btn("Créer le foyer", { variant: "primary", size: "lg", full: true, onClick: () => foyer.creer().catch(e => toast(e.message, { tone: "erreur" })) })),
+      h("div", { class: "card" }, h("h2", { class: "heading-md" }, "Rejoindre un foyer"), h("p", { class: "body-sm" }, "L'autre te montre un code de six caractères dans son onglet Foyer."),
+        btn("J'ai un code", { variant: "secondary", size: "lg", full: true, onClick: () => go("#/foyer/rejoindre") })),
       btn("Se déconnecter", { variant: "ghost", full: true, onClick: () => auth.signOut() })));
     return el; };
   return { el: rendu() };
@@ -106,6 +101,42 @@ export function rayonsView() {
     h("div", { class: "scroll" },
       h("p", { class: "body-sm discret" }, "La liste suit cet ordre, du premier rayon à la caisse. Maintiens un rayon et glisse-le pour le déplacer."),
       liste,
-      btn("Enregistrer", { variant: "primary", size: "lg", full: true, onClick: async () => { await foyer.saveRayons(ordre); toast("Ordre enregistré"); go("#/foyer"); } })));
+      btn("Enregistrer", { variant: "primary", size: "lg", full: true, onClick: async () => { await foyer.saveRayons(ordre); toast("Ordre enregistré", { tone: "succes" }); go("#/foyer"); } })));
   return { el, tab: "foyer" };
+}
+
+// Saisie du code d'invitation en six cases (décision du 02/11/2026). Un seul vrai champ, invisible, couvre les cases :
+// le clavier s'ouvre au tap, le collage « 7KQ-4MZ » passe, et le sixième caractère valide tout seul.
+export function rejoindreView() {
+  let code = "", err = null, enCours = false;
+  const nettoyer = v => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  const cases = Array.from({ length: 6 }, () => h("span", { class: "case", "aria-hidden": "true" }));
+  const reel = h("input", { class: "code-reel", type: "text", inputmode: "text", autocapitalize: "characters", autocomplete: "one-time-code", autocorrect: "off", spellcheck: "false", maxlength: "7", "aria-label": "Code d'invitation, six caractères",
+    onInput: e => { code = nettoyer(e.target.value); e.target.value = code; err = null; rendre(); if (code.length === 6) valider(); },
+    onKeydown: e => { if (e.key === "Enter") valider(); }, onFocus: () => rendre(), onBlur: () => rendre() });
+  const aide = h("p", { class: "caption code-aide" });
+  const bouton = btn("Rejoindre", { variant: "primary", size: "lg", full: true, onClick: () => valider() });
+  function rendre() {
+    const focus = document.activeElement === reel;
+    cases.forEach((c, i) => { c.textContent = code[i] || ""; c.classList.toggle("pleine", !!code[i]); c.classList.toggle("active", focus && i === Math.min(code.length, 5)); });
+    aide.textContent = err || (enCours ? "Vérification…" : "Six lettres et chiffres, comme 7KQ-4MZ. Le tiret ne compte pas.");
+    aide.classList.toggle("erreur", !!err);
+    bouton.disabled = code.length !== 6 || enCours;
+  }
+  async function valider() {
+    if (code.length !== 6 || enCours) return;
+    enCours = true; rendre();
+    try { await foyer.rejoindre(`${code.slice(0, 3)}-${code.slice(3)}`); go("#/"); toast(`Bienvenue dans ${state.foyer?.nom || "le foyer"}`, { tone: "succes" }); }
+    catch (e) { err = e.message; enCours = false; code = ""; reel.value = ""; rendre(); reel.focus(); }
+  }
+  const grille = h("div", { class: "code-cases" }, cases.slice(0, 3), h("span", { class: "tiret", "aria-hidden": "true" }, "–"), cases.slice(3), reel);
+  const el = h("div", { class: "screen no-tabs" },
+    navbar({ back: { label: "Votre foyer", href: "#/foyer" }, title: "Rejoindre un foyer" }),
+    h("div", { class: "scroll" },
+      h("p", { class: "body-md" }, "Saisis le code que l'autre te montre dans son onglet Foyer. Il reste valable sept jours."),
+      h("div", { class: "card code-carte" }, h("span", { class: "overline" }, "Code d'invitation"), grille, aide),
+      bouton));
+  rendre();
+  setTimeout(() => reel.focus(), 0);
+  return { el };
 }

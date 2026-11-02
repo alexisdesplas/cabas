@@ -41,27 +41,34 @@ function carteRepas(r, i, { changer, onOpen }) {
 
 export function repasFormView() {
   const d = demande;
-  let erreur = null;
-  const combien = h("div", { class: "card" },
-    h("div", { class: "field-row" }, h("span", { class: "body-md medium fort" }, "Dîners"), stepper({ value: d.diners, max: 7, label: "dîners", format: v => plural(v, "dîner", "dîners"), onChange: v => { d.diners = v; verif(); } })),
-    h("div", { class: "field-row" }, h("span", { class: "body-md medium fort" }, "Déjeuners"), stepper({ value: d.dejeuners, max: 7, label: "déjeuners", format: v => plural(v, "déjeuner", "déjeuners"), onChange: v => { d.dejeuners = v; verif(); } })),
-    h("div", { class: "field-row" }, h("span", { class: "body-md medium fort" }, "Personnes"), stepper({ value: d.personnes, min: 1, max: 8, label: "personnes", format: v => plural(v, "personne", "personnes"), onChange: v => { d.personnes = v; } })));
-  const err = h("p", { class: "caption", style: { color: "var(--etat-danger)", display: "none" } }, "Choisis au moins un dîner ou un déjeuner.");
-  combien.append(err);
+  const ligne = (titre, sous, ctrl) => h("div", { class: "field-row" }, h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, titre), h("span", { class: "caption" }, sous)), ctrl);
+  const combien = h("div", { class: "card combien" },
+    ligne("Dîners", "les soirs de la semaine", stepper({ value: d.diners, max: 7, label: "dîners", onChange: v => { d.diners = v; verif(); } })),
+    ligne("Déjeuners", "les midis à la maison", stepper({ value: d.dejeuners, max: 7, label: "déjeuners", onChange: v => { d.dejeuners = v; verif(); } })),
+    ligne("Personnes", "pour les quantités", stepper({ value: d.personnes, min: 1, max: 8, label: "personnes", onChange: v => { d.personnes = v; verif(); } })));
+  const err = h("p", { class: "caption erreur", style: { display: "none" } }, "Choisis au moins un dîner ou un déjeuner.");
+  const resume = h("p", { class: "caption num" });
   const envoyer = btn("Préparer le menu", { variant: "primary", size: "lg", full: true, icon: "sparkle", onClick: () => lancer() });
-  const verif = () => { const ok = d.diners + d.dejeuners > 0; err.style.display = ok ? "none" : ""; envoyer.disabled = !ok; };
+  const verif = () => {
+    const ok = d.diners + d.dejeuners > 0;
+    err.style.display = ok ? "none" : ""; envoyer.disabled = !ok;
+    const repas = [d.diners && plural(d.diners, "dîner", "dîners"), d.dejeuners && plural(d.dejeuners, "déjeuner", "déjeuners")].filter(Boolean).join(" et ") || "aucun repas";
+    resume.textContent = `${repas} · ${plural(d.personnes, "personne", "personnes")}${d.temps ? ` · ${d.temps} max` : ""}`;
+  };
   verif();
-  const el = h("div", { class: "screen" },
+  const el = h("div", { class: "screen formulaire" },
     pageHead("Repas de la semaine", "Dis ce qui vous tente : Claude prépare le menu et la liste de courses qui va avec."),
     h("div", { class: "scroll" },
-      combien,
-      h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Envies")),
-      chips(ENVIES, d.envies, v => { d.envies = v; }),
-      h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Temps en cuisine, un soir de semaine")),
-      segmented(TEMPS, d.temps, v => { d.temps = v; }),
-      field({ label: "À éviter", input: h("textarea", { class: "input", placeholder: "champignons, fruits de mer", value: d.eviter, onInput: e => { d.eviter = e.target.value; } }), help: "Allergies, ou ce que l'un de vous n'aime pas." }),
-      field({ label: "Déjà dans les placards", input: h("textarea", { class: "input", placeholder: "riz, pâtes, oignons, œufs, huile d'olive", value: d.placards, onInput: e => { d.placards = e.target.value; } }), help: "Claude ne les ajoutera pas à la liste." }),
-      envoyer));
+      h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, "Combien de repas"), combien, err),
+      h("div", { class: "bloc" }, h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Envies"), h("span", { class: "caption" }, "plusieurs choix possibles")),
+        chips(ENVIES, d.envies, v => { d.envies = v; })),
+      h("div", { class: "bloc" }, h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Temps en cuisine"), h("span", { class: "caption" }, "un soir de semaine")),
+        segmented(TEMPS, d.temps, v => { d.temps = v; verif(); })),
+      h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, "Précisions"),
+        h("div", { class: "card" },
+          field({ label: "À éviter", input: input({ placeholder: "champignons, fruits de mer", value: d.eviter, autocomplete: "off", onInput: e => { d.eviter = e.target.value; } }), help: "Allergies, ou ce que l'un de vous n'aime pas." }),
+          field({ label: "Déjà dans les placards", input: input({ placeholder: "riz, pâtes, oignons, œufs, huile d'olive", value: d.placards, autocomplete: "off", onInput: e => { d.placards = e.target.value; } }), help: "Claude ne les mettra pas sur la liste." }))),
+      h("div", { class: "action-bas" }, resume, envoyer)));
   return { el, tab: "repas" };
 }
 
@@ -138,7 +145,7 @@ async function accepter(m) {
 async function ajouter(m) {
   const n = await menus.ajouterALaListe(m);
   await menus.update({ ajoute: true });
-  toast(`${plural(n, "article ajouté", "articles ajoutés")} à la liste`);
+  toast(`${plural(n, "article ajouté", "articles ajoutés")} à la liste`, { tone: "succes" });
   go("#/repas");
 }
 

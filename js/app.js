@@ -3,7 +3,7 @@ import { h, icon, go } from "./ui.js";
 import { listeView, articleView } from "./views/liste.js";
 import { ajouterView } from "./views/ajouter.js";
 import { repasView, repasFormView, repasDetailView } from "./views/repas.js";
-import { foyerView, foyerChoixView, rayonsView } from "./views/foyer.js";
+import { foyerView, foyerChoixView, rayonsView, rejoindreView } from "./views/foyer.js";
 import { connecterView, creerView, validerView, motDePasseView } from "./views/compte.js";
 
 // Routes : #/chemin/:param. Chaque vue renvoie { el, tab? }.
@@ -16,6 +16,7 @@ const ROUTES = [
   ["repas/:i", repasDetailView],
   ["foyer", foyerView],
   ["foyer/rayons", rayonsView],
+  ["foyer/rejoindre", rejoindreView],
   ["compte", connecterView],
   ["compte/creer", creerView],
   ["compte/valider", validerView],
@@ -48,7 +49,7 @@ function render() {
   let { view, params, pattern } = match(location.hash);
   // Pas connecté : écrans de compte seulement. Connecté sans foyer : créer ou rejoindre.
   if (!state.user && !pattern.startsWith("compte")) { view = connecterView; params = {}; }
-  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe")) { view = foyerChoixView; params = {}; }
+  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe") && pattern !== "foyer/rejoindre") { view = foyerChoixView; params = {}; }
   else if (state.user && state.foyer && pattern.startsWith("compte") && pattern !== "compte/mot-de-passe") { view = listeView; params = {}; }
   // Même écran, et la vue sait se mettre à jour sur place (écran Ajouter : le champ et le clavier restent) : pas de remplacement.
   if (location.hash === lastHash && courante?.view === view && courante.update && root.contains(courante.el)) { courante.update(); return; }

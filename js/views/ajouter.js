@@ -74,14 +74,14 @@ export function ajouterView() {
     const existant = chercherArticle(nom);
     try {
       if (existant && !existant.coche) {
-        if (quantite && quantite !== existant.quantite) { await articles.update(existant.id, { quantite }); toast(`${existant.nom} · ${quantite}`); }
+        if (quantite && quantite !== existant.quantite) { await articles.update(existant.id, { quantite }); toast(`${existant.nom} · ${quantite}`, { tone: "succes" }); }
         else toast(`${existant.nom} est déjà dans la liste`);
       } else if (existant?.coche) {
-        await articles.update(existant.id, { coche: false, ...(quantite ? { quantite } : {}) }); ajoutes++; toast(`${existant.nom} remis à prendre`);
+        await articles.update(existant.id, { coche: false, ...(quantite ? { quantite } : {}) }); ajoutes++; toast(`${existant.nom} remis à prendre`, { tone: "succes", action: { label: "Annuler", onClick: async () => { await articles.update(existant.id, { coche: true }); ajoutes = Math.max(0, ajoutes - 1); rendre(); } } });
       } else {
-        await articles.add({ nom, quantite, rayon }); ajoutes++; toast(`${nom} ajouté${quantite ? ` · ${quantite}` : ""}`);
+        const id = await articles.add({ nom, quantite, rayon }); ajoutes++; toast(`${nom} ajouté${quantite ? ` · ${quantite}` : ""}`, { tone: "succes", action: { label: "Annuler", onClick: async () => { await articles.annulerAjout(id, nom); ajoutes = Math.max(0, ajoutes - 1); rendre(); } } });
       }
-    } catch (e) { toast(e.message || "L'ajout a échoué"); }
+    } catch (e) { toast(e.message || "L'ajout a échoué", { tone: "erreur" }); }
     rendre(); inp.focus();
   }
 
