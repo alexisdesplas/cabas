@@ -58,10 +58,9 @@ Articles et repas repris du menu d'exemple de l'app et de la liste réelle (Beur
 
 ## Questions ouvertes
 
-1. Les tuiles sont vides dans Figma : le rendu ne dessine pas les émojis couleur. Remplacer par de vraies illustrations (voir ci-dessous) ?
-2. Quelle piste de carte garder : 1, 2 ou 3 ?
-3. Garder le tap pour cocher en plus du glisser, ou réserver le tap à l'édition ?
+1. Quelle piste de carte garder : 1, 2 ou 3 ?
+2. Garder le tap pour cocher en plus du glisser, ou réserver le tap à l'édition ?
 
 ## Contrôle anti-patterns
 
-Signaux déclenchés : **tuiles vides** (contenu visuel manquant, à corriger avant validation). Aucun autre.
+Signaux déclenchés : aucun. Les tuiles portent des illustrations Fluent Emoji 3D (MIT), magasin `⚙ Illustrations` dans la section ; mêmes fichiers dans `icons/aliments/`.
