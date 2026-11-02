@@ -92,7 +92,11 @@ p { margin: 0; }
 .btn.sm { height: 32px; }
 .btn.full { width: 100%; }
 .btn.primary { background: var(--accent-base); color: var(--texte-inverse); }
-.btn.secondary { background: var(--fond-carte); border-color: var(--bord-base); color: var(--accent-texte); }
+/* Secondaire : teinté accent doux, sans contour (le contour gris faisait « formulaire ») ; enfoncé, il s'assombrit un cran */
+.btn.secondary { background: var(--accent-soft); color: var(--accent-texte); font-weight: 600; }
+.btn.secondary:active { background: var(--accent-bord); }
+.btn.lg { border-radius: var(--radius-md); }
+.btn.primary:active { opacity: .9; }
 .btn.ghost { background: transparent; color: var(--accent-texte); }
 .btn.danger { background: var(--etat-danger-soft); color: var(--etat-danger); }
 .btn.destructive { background: var(--etat-danger); color: var(--texte-inverse); }
