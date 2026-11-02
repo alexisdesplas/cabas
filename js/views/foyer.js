@@ -56,7 +56,7 @@ export function foyerView() {
   const carteCode = h("div", { class: "card" },
     h("div", { class: "code-haut" }, tuile(illustrationCle("house"), 56), h("div", { class: "row-main" }, h("span", { class: "overline" }, "Code d'invitation"), h("span", { class: "display-sm num" }, f.code))),
     h("p", { class: "body-sm" }, expire ? "Ce code a expiré : demande-en un nouveau." : seul
-      ? `L'autre le saisit dans Cabas après avoir créé son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`
+      ? `Envoie-lui le lien : Cabas s'ouvre avec le code déjà saisi, il n'a plus qu'à créer son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`
       : `Pour inviter quelqu'un d'autre dans ${f.nom}. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`),
     expire ? btn("Nouveau code", { variant: "primary", size: "lg", full: true, onClick: () => foyer.renouvelerCode() })
       : btn("Partager le code", { variant: seul ? "primary" : "secondary", size: "lg", full: true, icon: "share", onClick: partagerCode }));

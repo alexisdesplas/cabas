@@ -86,7 +86,7 @@ p { margin: 0; }
 .navbar-title span { font: 400 12px/16px var(--font); color: var(--texte-discret); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* ——— Barre d'onglets (proposition locale : Liste · Repas · Foyer), alignée sur la maquette (⚠ Proposition — Barre d'onglets, 372:4077)
-   Fond page opaque, un filet ; pas de pastille : l'onglet actif passe en accent, icône au trait appuyé, libellé en gras. */
+   Fond page opaque, un filet ; pas de pastille : l'onglet actif passe en accent avec l'icône pleine (Phosphor Fill), libellé en gras. */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 480px; margin: 0 auto; background: var(--fond-page); border-top: 1px solid var(--bord-discret); padding-bottom: var(--safe-bottom); }
 .tabbar nav { display: grid; grid-template-columns: repeat(3, 1fr); height: 58px; }
 .tab { border: 0; background: none; padding: 6px 0 0; color: var(--texte-discret); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; font: 500 12px/16px var(--font); -webkit-tap-highlight-color: transparent; transition: color 160ms var(--ease); }
@@ -94,7 +94,6 @@ p { margin: 0; }
 .tab svg { width: 24px; height: 24px; }
 .tab:active .tab-ic { transform: scale(.9); }
 .tab[aria-current="page"] { color: var(--accent-texte); font-weight: 600; }
-.tab[aria-current="page"] svg { stroke-width: 22; }
 @media (prefers-reduced-motion: reduce) { .tab, .tab-ic { transition: none; } }
 
 /* ——— Bouton */
@@ -184,6 +183,17 @@ button.row:active { background: var(--fond-discret); }
 .jauge-reperes { display: flex; justify-content: space-between; margin-top: -4px; }
 .jauge-valeur { font: 600 16px/24px var(--font); color: var(--accent-texte); }
 .count { display: flex; align-items: baseline; gap: var(--spacing-12); }
+/* Carte « La liste qui va avec » (menu proposé) : trois chiffres côte à côte, le principal en accent, une barre de part, puis les gestes */
+.card.recap { gap: var(--spacing-12); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-8); }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: var(--spacing-12); border-radius: var(--radius-md); background: var(--fond-page); min-width: 0; }
+.stat .heading-xl { font-size: 26px; line-height: 30px; }
+.stat .caption { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat.accent { background: var(--accent-soft); }
+.stat.accent .heading-xl, .stat.accent .caption { color: var(--accent-texte); }
+.recap-barre { margin-top: calc(var(--spacing-4) * -1); }
+.card.recap > .caption { margin: calc(var(--spacing-8) * -1) 0 0; }
+.card.recap .btn.ghost { margin: calc(var(--spacing-8) * -1) 0 calc(var(--spacing-8) * -1); }
 .track { position: relative; height: 8px; border-radius: 4px; background: var(--fond-discret); overflow: hidden; }
 .fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--accent-base); transition: width 400ms var(--ease); }
 
