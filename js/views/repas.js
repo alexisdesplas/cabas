@@ -1,12 +1,19 @@
-import { state, menus, lundi, dateKey, notify } from "../data.js";
-import { h, icon, btn, navbar, pageHead, hint, field, input, stepper, chips, segmented, sheet, confirmSheet, toast, go, dateShort, plural } from "../ui.js";
+import { state, menus, achats, lundi, dateKey, notify } from "../data.js";
+import { h, icon, btn, navbar, pageHead, hint, field, input, stepper, chips, jauge, sheet, confirmSheet, toast, go, dateShort, plural } from "../ui.js";
 
 const ENVIES = ["Végétarien", "Rapide", "De saison", "Poisson", "Réconfortant", "Batch cooking", "Léger"];
-const TEMPS = [["20 min", "20 min"], ["40 min", "40 min"], ["1 h", "1 h"], ["", "Peu importe"]];
+// Temps en cuisine : de 10 min à 1 h 30 par pas de 5, et un cran de plus pour « peu importe » (temps vide pour l'API).
+const TEMPS_MAX = 95;
+const tempsTexte = v => (v >= TEMPS_MAX ? "" : v < 60 ? `${v} min` : v === 60 ? "1 h" : `1 h ${String(v - 60).padStart(2, "0")}`);
+const tempsLabel = v => tempsTexte(v) || "Peu importe";
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Ce qui se passe entre le formulaire et le menu enregistré vit ici, le temps de la session.
-let demande = { repas: 5, personnes: 2, envies: ["Végétarien", "Rapide", "De saison"], temps: "40 min", eviter: "", placards: "" };
+let demande = { repas: 5, personnes: 2, envies: ["Végétarien", "Rapide", "De saison"], tempsMin: 40, temps: "40 min", eviter: "", placards: "", placardsChoisis: null };
+// Achetés aux dernières courses (trois semaines), les plus récents d'abord : proposés précochés comme « déjà dans les placards ».
+const achatsRecents = () => achats().filter(a => Date.now() - new Date(a.le) < 21 * 86400000).sort((a, b) => new Date(b.le) - new Date(a.le)).slice(0, 14).map(a => a.nom);
+// Ce qui part à l'API : le texte libre et les puces gardées, réunis dans « placards ».
+const requete = () => ({ ...demande, placards: [demande.placards.trim(), ...(demande.placardsChoisis || [])].filter(Boolean).join(", ") });
 let etat = null; // null | { phase: "prepare" | "propose" | "erreur", menu?, erreur?, depuis? }
 
 export function repasView() {
@@ -40,12 +47,15 @@ function carteRepas(r, i, { changer, onOpen }) {
 
 export function repasFormView() {
   const d = demande;
+  const recents = achatsRecents();
+  if (!d.placardsChoisis) d.placardsChoisis = [...recents];
   const ligne = (titre, sous, ctrl) => h("div", { class: "field-row" }, h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, titre), h("span", { class: "caption" }, sous)), ctrl);
   const combien = h("div", { class: "card combien" },
     ligne("Repas", "à cuisiner cette semaine", stepper({ value: d.repas, min: 1, max: 14, label: "repas", onChange: v => { d.repas = v; verif(); } })),
     ligne("Personnes", "pour les quantités", stepper({ value: d.personnes, min: 1, max: 8, label: "personnes", onChange: v => { d.personnes = v; verif(); } })));
   const err = h("p", { class: "caption erreur", style: { display: "none" } }, "Choisis au moins un repas.");
   const resume = h("p", { class: "caption num" });
+  const temps = jauge({ value: d.tempsMin, min: 10, max: TEMPS_MAX, step: 5, label: "Temps en cuisine", format: tempsLabel, onChange: v => { d.tempsMin = v; d.temps = tempsTexte(v); verif(); } });
   const envoyer = btn("Préparer le menu", { variant: "primary", size: "lg", full: true, icon: "sparkle", onClick: () => lancer() });
   const verif = () => {
     const ok = d.repas > 0;
@@ -59,12 +69,17 @@ export function repasFormView() {
       h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, "Combien de repas"), combien, err),
       h("div", { class: "bloc" }, h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Envies"), h("span", { class: "caption" }, "plusieurs choix possibles")),
         chips(ENVIES, d.envies, v => { d.envies = v; })),
-      h("div", { class: "bloc" }, h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Temps en cuisine"), h("span", { class: "caption" }, "un soir de semaine")),
-        segmented(TEMPS, d.temps, v => { d.temps = v; verif(); })),
+      h("div", { class: "bloc" }, h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, "Temps en cuisine"), temps.valeur),
+        h("div", { class: "card jauge-carte" }, temps.el,
+          h("div", { class: "jauge-reperes" }, h("span", { class: "caption" }, "10 min"), h("span", { class: "caption" }, "Peu importe")),
+          h("p", { class: "caption" }, "Au maximum, un soir de semaine."))),
       h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, "Précisions"),
         h("div", { class: "card" },
           field({ label: "À éviter", input: input({ placeholder: "champignons, fruits de mer", value: d.eviter, autocomplete: "off", onInput: e => { d.eviter = e.target.value; } }), help: "Allergies, ou ce que l'un de vous n'aime pas." }),
-          field({ label: "Déjà dans les placards", input: input({ placeholder: "riz, pâtes, oignons, œufs, huile d'olive", value: d.placards, autocomplete: "off", onInput: e => { d.placards = e.target.value; } }), help: "Claude ne les mettra pas sur la liste." }))),
+          field({ label: "Déjà dans les placards", input: input({ placeholder: "riz, pâtes, oignons, œufs, huile d'olive", value: d.placards, autocomplete: "off", onInput: e => { d.placards = e.target.value; } }), help: "Claude ne les mettra pas sur la liste." }),
+          recents.length ? h("div", { class: "field" }, h("label", null, "Achetés aux dernières courses"),
+            chips(recents, d.placardsChoisis, v => { d.placardsChoisis = v; }),
+            h("div", { class: "help" }, "Comptés comme déjà là. Décoche ce qui est fini.")) : null)),
       h("div", { class: "action-bas" }, resume, envoyer)));
   return { el, tab: "repas" };
 }
@@ -72,7 +87,7 @@ export function repasFormView() {
 async function lancer() {
   etat = { phase: "prepare", depuis: Date.now() }; go("#/repas"); notify();
   try {
-    const menu = await menus.demander(demande);
+    const menu = await menus.demander(requete());
     etat = { phase: "propose", menu };
   } catch (e) { etat = { phase: "erreur", erreur: e.message }; }
   notify();
@@ -120,7 +135,7 @@ async function changerPlat(i) {
   const r = source.repas[i];
   const dlg = sheet({ title: `Changer le plat de ${r.jour}`, body: [h("p", { class: "body-md" }, "Avec les mêmes envies, Claude propose à la place :"), h("div", { class: "card skeleton" }, h("i", { class: "s" }), h("i", { class: "t" }), h("i", { class: "d" }))] });
   try {
-    const res = await menus.demander({ ...demande, remplacer: { jour: r.jour, plat: r.plat }, autres: source.repas.map(x => x.plat) });
+    const res = await menus.demander({ ...requete(), remplacer: { jour: r.jour, plat: r.plat }, autres: source.repas.map(x => x.plat) });
     const nouveau = { ...res.repas[0], jour: r.jour };
     const corps = dlg.querySelector(".sheet-body");
     corps.replaceChildren(h("p", { class: "body-md" }, "Avec les mêmes envies, Claude propose à la place :"),

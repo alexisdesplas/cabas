@@ -16,6 +16,23 @@ function ligne(a) {
 // Bouton flottant « Ajouter » : ouvre l'écran dédié (décision du 02/11/2026). Le relais clavier se fait dans le geste.
 const fab = () => h("button", { type: "button", class: "fab", "aria-label": "Ajouter un article", onClick: () => { relaisClavier(); go("#/ajouter"); } }, icon("plus"));
 
+// Carte de progression : anneau avec le nombre à prendre, fond teinté, vert quand tout est dans le panier.
+function progression(restants, panier, total, fini) {
+  const pct = total ? panier.length / total : 0, r = 30, c = 2 * Math.PI * r;
+  const anneau = h("svg", { class: "anneau", viewBox: "0 0 72 72", "aria-hidden": "true" },
+    h("circle", { svg: true, cx: 36, cy: 36, r, class: "anneau-fond" }),
+    h("circle", { svg: true, cx: 36, cy: 36, r, class: "anneau-trait", style: { strokeDasharray: c, strokeDashoffset: c * (1 - pct) } }));
+  const rayons = new Set(restants.map(a => a.rayon)).size;
+  return h("div", { class: `card progression${fini ? " fini" : ""}` },
+    h("div", { class: "progression-haut" },
+      h("div", { class: "anneau-wrap" }, anneau, h("span", { class: "anneau-chiffre num" }, fini ? icon("check") : String(restants.length))),
+      h("div", { class: "progression-texte" },
+        h("span", { class: "overline" }, fini ? "Courses finies" : "À prendre"),
+        h("span", { class: "heading-md" }, fini ? `Les ${total} articles sont dans le panier` : plural(restants.length, "article", "articles")),
+        h("span", { class: "caption" }, fini ? "Vide le panier : la liste repart propre pour la prochaine fois." : `${panier.length ? `${panier.length} dans le panier · ` : ""}${plural(rayons, "rayon à parcourir", "rayons à parcourir")}`))),
+    fini && btn("Terminer les courses", { variant: "primary", size: "lg", full: true, onClick: terminer }));
+}
+
 export function listeView() {
   const tous = state.articles, restants = tous.filter(a => !a.coche), panier = tous.filter(a => a.coche);
   const activite = state.activite && Date.now() - state.activite.t < 60000 ? state.activite : null;
@@ -32,13 +49,7 @@ export function listeView() {
       btn("Préparer les repas de la semaine", { variant: "primary", size: "lg", full: true, onClick: () => go("#/repas/formulaire") })));
   } else {
     const fini = restants.length === 0;
-    children.push(h("div", { class: "card" },
-      h("span", { class: "overline" }, "À prendre"),
-      h("div", { class: "count" }, h("span", { class: "display-sm num" }, restants.length),
-        h("span", { class: "body-sm" }, fini ? `à prendre · les ${tous.length} articles sont dans le panier` : `${restants.length > 1 ? "articles" : "article"} sur ${tous.length} · ${panier.length} dans le panier`)),
-      h("div", { class: "track" }, h("div", { class: "fill", style: { width: `${Math.round((panier.length / tous.length) * 100)}%` } })),
-      fini && btn("Terminer les courses", { variant: "primary", size: "lg", full: true, onClick: terminer }),
-      fini && h("p", { class: "caption" }, "Vide le panier : la liste repart propre pour la prochaine fois.")));
+    children.push(progression(restants, panier, tous.length, fini));
     for (const r of rayonsDuFoyer()) {
       const dedans = restants.filter(a => a.rayon === r);
       if (!dedans.length) continue;
