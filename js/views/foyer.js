@@ -3,11 +3,26 @@ import { h, icon, btn, navbar, pageHead, pill, field, input, confirmSheet, toast
 
 const initiales = p => (p || "?").split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase();
 
+// Créateur : la colonne cree_par ; à défaut (ancien schéma), le plus ancien compte du foyer.
+const createur = () => state.foyer?.cree_par || [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0]?.user_id;
+
 function membresCarte() {
-  return h("div", { class: "list" }, state.membres.map(m => h("div", { class: "row" },
-    h("span", { class: "initiales" }, initiales(m.prenom)),
-    h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, m.prenom || "Sans prénom"),
-      h("span", { class: "caption" }, m.user_id === state.user.id ? `toi${m.created_at <= state.foyer.created_at ? " · a créé le foyer" : ""}` : `a rejoint le ${dateShort(m.created_at)}`)))));
+  const moiCreateur = createur() === state.user.id;
+  return h("div", { class: "list" }, state.membres.map(m => {
+    const moi = m.user_id === state.user.id, cree = m.user_id === createur();
+    const sous = [moi ? "toi" : null, cree ? "a créé le foyer" : moi ? null : "membre"].filter(Boolean).join(" · ");
+    return h("div", { class: "row" },
+      h("span", { class: "initiales" }, initiales(m.prenom)),
+      h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, m.prenom || "Sans prénom"), h("span", { class: "caption" }, sous)),
+      moiCreateur && !moi && btn("Retirer", { variant: "ghost", onClick: () => retirer(m) }));
+  }));
+}
+
+function retirer(m) {
+  const nom = m.prenom || "ce membre";
+  confirmSheet({ title: `Retirer ${nom} ?`, message: `${nom} ne verra plus la liste ni les repas de ${state.foyer.nom}. Le code d'invitation change : pour revenir, il lui faudra le nouveau.`,
+    confirmLabel: `Retirer ${nom}`, cancelLabel: "Annuler", destructive: true,
+    onConfirm: async () => { try { await foyer.retirer(m.user_id); toast(`${nom} ne fait plus partie du foyer`, { tone: "succes" }); } catch (e) { toast(e.message, { tone: "erreur" }); } } });
 }
 
 // Carte compte (proposition Fluide) : tuile, e-mail, état, dernière synchro, Synchroniser · Se déconnecter.

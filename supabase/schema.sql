@@ -144,3 +144,41 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   alter publication supabase_realtime add table public.foyers;
 exception when duplicate_object then null; end $$;
+
+-- ——— Créateur du foyer et retrait d'un membre (02/11/2026)
+-- Le créateur peut retirer un autre membre ; le code est renouvelé pour qu'il ne puisse pas revenir avec l'ancien.
+alter table public.foyers add column if not exists cree_par uuid references auth.users(id) on delete set null;
+-- Foyers existants : le plus ancien compte du foyer passe pour le créateur.
+update public.foyers f set cree_par = (select m.user_id from public.membres m where m.foyer_id = f.id order by m.created_at limit 1) where f.cree_par is null;
+
+create or replace function public.creer_foyer() returns public.foyers language plpgsql security definer set search_path = public as $$
+declare f public.foyers;
+begin
+  if auth.uid() is null then raise exception 'non connecté'; end if;
+  insert into public.foyers (code, cree_par) values (public.nouveau_code(), auth.uid()) returning * into f;
+  update public.membres set foyer_id = f.id where user_id = auth.uid();
+  return f;
+end $$;
+
+-- Si le créateur s'en va, le membre restant le plus ancien prend la main.
+create or replace function public.quitter_foyer() returns void language plpgsql security definer set search_path = public as $$
+declare fid uuid := public.mon_foyer();
+begin
+  update public.membres set foyer_id = null where user_id = auth.uid();
+  update public.foyers set cree_par = (select user_id from public.membres where foyer_id = fid order by created_at limit 1)
+    where id = fid and cree_par = auth.uid();
+end $$;
+
+create or replace function public.retirer_membre(p_user uuid) returns public.foyers language plpgsql security definer set search_path = public as $$
+declare f public.foyers;
+begin
+  if auth.uid() is null then raise exception 'non connecté'; end if;
+  select * into f from public.foyers where id = public.mon_foyer();
+  if f.id is null or f.cree_par is distinct from auth.uid() then raise exception 'seul le créateur du foyer peut retirer un membre'; end if;
+  if p_user = auth.uid() then raise exception 'pour partir, quitte le foyer'; end if;
+  update public.membres set foyer_id = null where user_id = p_user and foyer_id = f.id;
+  if not found then raise exception 'ce membre n''est pas dans le foyer'; end if;
+  update public.foyers set code = public.nouveau_code(), code_expire_le = now() + interval '7 days' where id = f.id returning * into f;
+  return f;
+end $$;
+grant execute on function public.retirer_membre(uuid) to authenticated;

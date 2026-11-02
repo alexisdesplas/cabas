@@ -71,7 +71,7 @@ const demo = {
   async signOut() { this.st.connecte = false; this.save(); this.pousser(); },
   async resetPassword() {}, async updatePassword() {},
   async creerFoyer() {
-    this.st.foyer = { id: uid(), nom: "Chez nous", code: "7KQ-4MZ", code_expire_le: new Date(Date.now() + 7 * 86400000).toISOString(), rayons: RAYONS_DEFAUT, created_at: new Date().toISOString(), elle: null };
+    this.st.foyer = { id: uid(), cree_par: "moi", nom: "Chez nous", code: "7KQ-4MZ", code_expire_le: new Date(Date.now() + 7 * 86400000).toISOString(), rayons: RAYONS_DEFAUT, created_at: new Date().toISOString(), elle: null };
     this.st.articles = []; this.save(); this.pousser();
     // Elle rejoint 6 s plus tard et ajoute un article : on voit le temps réel.
     setTimeout(() => { if (!this.st.foyer) return; this.st.foyer.elle = new Date().toISOString(); this.save(); this.pousser(); }, 6000);
@@ -82,6 +82,7 @@ const demo = {
     await this.creerFoyer();
   },
   async quitterFoyer() { this.st.foyer = null; this.save(); this.pousser(); },
+  async retirerMembre(id) { if (id === "elle") this.st.foyer.elle = null; this.st.foyer.code = "N3P-8RW"; this.save(); this.pousser(); },
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
   async saveHabituels(h) { this.st.foyer.habituels = h; this.save(); },
@@ -165,7 +166,7 @@ const sb = {
     for (const fn of file) { try { await fn(); } catch {} }
     state.enAttente = 0; await this.charger();
   },
-  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; if (/rate limit/i.test(m)) return "Trop d'e-mails envoyés : Supabase en limite 2 par heure. Réessaie dans une heure, ou cherche le précédent dans les indésirables."; return m || "Erreur inattendue."; },
+  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; if (/seul le créateur|quitte le foyer|pas dans le foyer/i.test(m)) return m.charAt(0).toUpperCase() + m.slice(1) + "."; if (/rate limit/i.test(m)) return "Trop d'e-mails envoyés : Supabase en limite 2 par heure. Réessaie dans une heure, ou cherche le précédent dans les indésirables."; return m || "Erreur inattendue."; },
   async signUp(prenom, email, mdp) {
     const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { prenom }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw new Error(this.erreur(error));
@@ -180,6 +181,7 @@ const sb = {
   async creerFoyer() { await this.rpc("creer_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
   async rejoindreFoyer(code) { await this.rpc("rejoindre_foyer", { p_code: code }); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
   async quitterFoyer() { await this.rpc("quitter_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async retirerMembre(id) { await this.rpc("retirer_membre", { p_user: id }); await this.charger(); },
   async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
   async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
   async saveHabituels(habituels) { await this.envoyer(() => this.client.from("foyers").update({ habituels }).eq("id", state.foyer.id)); },
@@ -217,7 +219,7 @@ export const init = () => moteur.init();
 // « Synchroniser » : relit tout depuis le serveur (en démo, relit le localStorage).
 export const synchroniser = async () => { if (moteur.charger) await moteur.charger(); else moteur.pousser(); state.majLe = Date.now(); notify(); };
 export const auth = { signUp: (p, e, m) => moteur.signUp(p, e, m), signIn: (e, m) => moteur.signIn(e, m), signOut: () => moteur.signOut(), resetPassword: e => moteur.resetPassword(e), updatePassword: m => moteur.updatePassword(m) };
-export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
+export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), retirer: id => moteur.retirerMembre(id), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
 // Habituels du foyer : compteur par article ajouté à la main (pas ceux du menu), gardé dans foyers.habituels (jsonb).
 // Sert à l'écran Ajouter : « Habituels » et « Derniers ajouts ». Au pire, si la colonne manque, l'ajout marche quand même.
 export const habituels = () => Object.values(state.foyer?.habituels || {});
