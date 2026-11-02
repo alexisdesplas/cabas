@@ -127,9 +127,14 @@ function etatView() {
     const m = etat.menu, aAcheter = menus.aAcheter(m), dejaListe = menus.dejaLa(m) - m.repas.flatMap(r => r.ingredients).filter(i => i.deja_la).length, chezVous = m.repas.flatMap(r => r.ingredients).filter(i => i.deja_la).length;
     titre = "Menu proposé"; sur = `${plural(n, "REPAS", "REPAS")} POUR ${d.personnes} · ${periode(semaineVisee()).toUpperCase()}`;
     body = [
-      h("div", { class: "card" }, h("span", { class: "overline" }, "La liste qui va avec"),
-        h("div", { class: "count" }, h("span", { class: "display-sm num" }, aAcheter), h("span", { class: "body-sm" }, `${aAcheter > 1 ? "articles" : "article"} à ajouter${dejaListe ? ` · ${dejaListe} déjà sur la liste` : ""}${chezVous ? ` · ${chezVous} chez vous` : ""}`)),
-        btn(`Ajouter les ${aAcheter} articles à la liste`, { variant: "primary", size: "lg", full: true, onClick: () => accepter(m) }),
+      h("div", { class: "card recap" }, h("span", { class: "overline" }, "La liste qui va avec"),
+        h("div", { class: "stats" },
+          h("div", { class: "stat accent" }, h("span", { class: "heading-xl num" }, String(aAcheter)), h("span", { class: "caption" }, "à ajouter")),
+          h("div", { class: "stat" }, h("span", { class: "heading-xl num" }, String(dejaListe)), h("span", { class: "caption" }, "sur la liste")),
+          h("div", { class: "stat" }, h("span", { class: "heading-xl num" }, String(chezVous)), h("span", { class: "caption" }, "chez vous"))),
+        h("div", { class: "barre recap-barre" }, h("div", { class: "fait" , style: { width: `${Math.round(aAcheter / Math.max(1, aAcheter + dejaListe + chezVous) * 100)}%` } })),
+        h("p", { class: "caption" }, `${plural(aAcheter + dejaListe + chezVous, "ingrédient au total", "ingrédients au total")} : seuls les ${aAcheter} manquants partent sur la liste.`),
+        btn(aAcheter > 1 ? `Ajouter les ${aAcheter} articles à la liste` : "Ajouter l'article à la liste", { variant: "primary", size: "lg", full: true, onClick: () => accepter(m) }),
         btn("Refaire tout le menu", { variant: "ghost", full: true, onClick: lancer })),
       h("div", { class: "groupe" }, titreSection("LES REPAS", m.repas.length), h("div", { class: "lignes" }, m.repas.map((r, i) => carteRepas(r, i, { actions: true, onOpen: () => detailSheet(r) }))))];
   }
