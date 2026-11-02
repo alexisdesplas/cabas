@@ -1,6 +1,7 @@
 import { state, subscribe, init, DEMO } from "./data.js";
 import { h, icon, go } from "./ui.js";
 import { listeView, articleView } from "./views/liste.js";
+import { ajouterView } from "./views/ajouter.js";
 import { repasView, repasFormView, repasDetailView } from "./views/repas.js";
 import { foyerView, foyerChoixView, rayonsView } from "./views/foyer.js";
 import { connecterView, creerView, validerView, motDePasseView } from "./views/compte.js";
@@ -8,6 +9,7 @@ import { connecterView, creerView, validerView, motDePasseView } from "./views/c
 // Routes : #/chemin/:param. Chaque vue renvoie { el, tab? }.
 const ROUTES = [
   ["", listeView],
+  ["ajouter", ajouterView],
   ["article/:id", articleView],
   ["repas", repasView],
   ["repas/formulaire", repasFormView],
@@ -39,7 +41,7 @@ function tabbar(current) {
 }
 
 const root = document.getElementById("app");
-let lastHash = null;
+let lastHash = null, courante = null;
 
 function render() {
   if (!state.pret) { root.replaceChildren(h("div", { class: "screen" }, h("div", { class: "scroll", style: { justifyContent: "center", alignItems: "center" } }, h("p", { class: "caption" }, "Cabas…")))); return; }
@@ -48,9 +50,11 @@ function render() {
   if (!state.user && !pattern.startsWith("compte")) { view = connecterView; params = {}; }
   else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe")) { view = foyerChoixView; params = {}; }
   else if (state.user && state.foyer && pattern.startsWith("compte") && pattern !== "compte/mot-de-passe") { view = listeView; params = {}; }
+  // Même écran, et la vue sait se mettre à jour sur place (écran Ajouter : le champ et le clavier restent) : pas de remplacement.
+  if (location.hash === lastHash && courante?.view === view && courante.update && root.contains(courante.el)) { courante.update(); return; }
   const scroller = root.querySelector(".scroll");
   const keep = location.hash === lastHash && scroller ? scroller.scrollTop : 0;
-  const current = view(params);
+  const current = view(params); current.view = view; courante = current;
   root.replaceChildren(current.el);
   if (current.tab !== undefined) root.append(tabbar(current.tab));
   const next = root.querySelector(".scroll");

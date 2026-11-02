@@ -1,6 +1,6 @@
-import { state, articles, chercherArticle, devinerRayon, prenomDe, RAYONS_DEFAUT } from "../data.js";
-import { suggerer, produitExact, analyser } from "../produits.js";
-import { h, icon, btn, navbar, pageHead, hint, field, input, sheet, confirmSheet, toast, go, ago, plural } from "../ui.js";
+import { state, articles, prenomDe, RAYONS_DEFAUT } from "../data.js";
+import { relaisClavier } from "./ajouter.js";
+import { h, icon, btn, navbar, pageHead, hint, field, input, confirmSheet, toast, go, ago, plural } from "../ui.js";
 
 const rayonsDuFoyer = () => state.foyer?.rayons || RAYONS_DEFAUT;
 const detail = a => [a.quantite, a.note, a.source ? a.source.replace(/ \(.*\)$/, "") : `ajouté par ${prenomDe(a.ajoute_par)}`].filter(Boolean).join(" · ");
@@ -13,52 +13,8 @@ function ligne(a) {
     h("button", { class: "icon-btn edit", "aria-label": `Modifier ${a.nom}`, onClick: e => { e.stopPropagation(); go(`#/article/${a.id}`); } }, icon("pencil")));
 }
 
-// Ajout rapide : en tapant, les produits de la base se proposent avec leur rayon ; la quantité se dit
-// dans la même phrase (« 3 courgettes », « 500 g riz »). Le texte tapé survit aux rafraîchissements de l'écran.
-let brouillon = "", brouillonFocus = false;
-const rayonConnu = r => rayonsDuFoyer().includes(r) ? r : null;
-
-function champAjout() {
-  const inp = input({ placeholder: "Ajouter… ex. 3 courgettes, 500 g riz", "aria-label": "Nouvel article", autocomplete: "off", autocorrect: "off", enterkeyhint: "done", value: brouillon,
-    onInput: e => { brouillon = e.target.value; proposer(); },
-    onFocus: () => { brouillonFocus = true; proposer(); }, onBlur: () => { brouillonFocus = false; setTimeout(() => { if (!brouillonFocus) panneau.replaceChildren(); }, 150); },
-    onKeydown: e => { if (e.key === "Enter") { e.preventDefault(); const premier = panneau.querySelector("button"); premier ? premier.click() : ajouter(analyser(brouillon)); } if (e.key === "Escape") { brouillon = ""; e.target.value = ""; panneau.replaceChildren(); } } });
-  const panneau = h("div", { class: "suggest", style: { display: "none" } });
-  const ligne = (nom, sous, libre, onPick) => h("button", { type: "button", class: `row${libre ? " libre" : ""}`, onPointerdown: e => e.preventDefault(), onClick: onPick },
-    h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, nom), sous && h("span", { class: "caption" }, sous)), icon("plus", "plus"));
-  const proposer = () => {
-    const texte = brouillon.trim();
-    if (!texte) { panneau.style.display = "none"; panneau.replaceChildren(); return; }
-    const { nom, quantite } = analyser(texte);
-    const qte = quantite ? ` · ${quantite}` : "";
-    const lignes = suggerer(nom).map(p => ligne(p.nom, `${rayonConnu(p.rayon) || devinerRayon(p.nom)}${qte}`, false, () => ajouter({ nom: p.nom, quantite, rayon: rayonConnu(p.rayon) || devinerRayon(p.nom) })));
-    if (!produitExact(nom)) lignes.push(ligne(`Ajouter « ${nom} »`, `${devinerRayon(nom)}${qte}`, true, () => ajouter({ nom, quantite })));
-    panneau.replaceChildren(...lignes); panneau.style.display = "";
-  };
-  const vider = () => { brouillon = ""; inp.value = ""; panneau.style.display = "none"; panneau.replaceChildren(); inp.focus(); };
-  // On vide le champ avant d'enregistrer : l'enregistrement redessine l'écran, et le nouveau champ repart du brouillon.
-  const ajouter = async ({ nom, quantite = "", rayon }) => {
-    if (!nom) return;
-    vider();
-    rayon = rayon || devinerRayon(nom);
-    const existant = chercherArticle(nom);
-    if (existant && !existant.coche) {
-      sheet({ title: `${existant.nom} est déjà dans la liste`, body: close => [
-        h("p", { class: "body-md" }, `${existant.quantite ? `Il y en a ${existant.quantite} à prendre` : "Il est déjà à prendre"}, ${existant.ajoute_par === state.user?.id ? "ajouté par toi" : `ajouté par ${prenomDe(existant.ajoute_par)}`}. Plutôt que créer un doublon, tu veux changer la quantité ?`),
-        quantite && btn(`Passer à ${quantite}`, { variant: "primary", size: "lg", full: true, onClick: async () => { close(); await articles.update(existant.id, { quantite }); toast(`${existant.nom} · ${quantite}`); } }),
-        btn(quantite ? "Modifier autrement" : "Modifier la quantité", { variant: quantite ? "ghost" : "primary", size: quantite ? undefined : "lg", full: true, onClick: () => { close(); go(`#/article/${existant.id}`); } }),
-        btn("Ajouter quand même", { variant: "ghost", full: true, onClick: async () => { close(); await articles.add({ nom, quantite, rayon }); } })
-      ] });
-      return;
-    }
-    if (existant?.coche) { await articles.update(existant.id, { coche: false, ...(quantite ? { quantite } : {}) }); toast(`${existant.nom} remis à prendre`); return; }
-    try { await articles.add({ nom, quantite, rayon }); } catch (e) { toast(e.message || "L'ajout a échoué"); }
-  };
-  if (brouillonFocus) setTimeout(() => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); proposer(); });
-  return h("div", { class: "add-wrap" },
-    h("div", { class: "add" }, inp, h("button", { type: "button", "aria-label": "Ajouter", onPointerdown: e => e.preventDefault(), onClick: () => { const premier = panneau.querySelector("button"); premier ? premier.click() : ajouter(analyser(brouillon)); } }, icon("plus"))),
-    panneau);
-}
+// Bouton flottant « Ajouter » : ouvre l'écran dédié (décision du 02/11/2026). Le relais clavier se fait dans le geste.
+const fab = () => h("button", { type: "button", class: "fab", "aria-label": "Ajouter un article", onClick: () => { relaisClavier(); go("#/ajouter"); } }, icon("plus"));
 
 export function listeView() {
   const tous = state.articles, restants = tous.filter(a => !a.coche), panier = tous.filter(a => a.coche);
@@ -70,9 +26,9 @@ export function listeView() {
   if (activite) children.push(hint(activite.texte, null, "plus"));
 
   if (tous.length === 0) {
-    children.push(champAjout(), h("div", { class: "card empty" },
+    children.push(h("div", { class: "card empty" },
       h("p", { class: "body-md medium fort" }, "La liste est vide"),
-      h("p", { class: "body-sm discret" }, "Ajoute un article au-dessus, ou laisse Claude préparer les repas de la semaine et la liste qui va avec."),
+      h("p", { class: "body-sm discret" }, "Ajoute tes articles avec le bouton +, ou laisse Claude préparer les repas de la semaine et la liste qui va avec."),
       btn("Préparer les repas de la semaine", { variant: "primary", size: "lg", full: true, onClick: () => go("#/repas/formulaire") })));
   } else {
     const fini = restants.length === 0;
@@ -83,7 +39,6 @@ export function listeView() {
       h("div", { class: "track" }, h("div", { class: "fill", style: { width: `${Math.round((panier.length / tous.length) * 100)}%` } })),
       fini && btn("Terminer les courses", { variant: "primary", size: "lg", full: true, onClick: terminer }),
       fini && h("p", { class: "caption" }, "Vide le panier : la liste repart propre pour la prochaine fois.")));
-    if (!fini) children.push(champAjout());
     for (const r of rayonsDuFoyer()) {
       const dedans = restants.filter(a => a.rayon === r);
       if (!dedans.length) continue;
@@ -97,7 +52,7 @@ export function listeView() {
         !fini && btn("Vider le panier", { variant: "ghost", onClick: viderPanier })),
       h("div", { class: "list" }, panier.map(ligne)));
   }
-  const el = h("div", { class: "screen" }, pageHead("Courses", sous), h("div", { class: "scroll" }, children));
+  const el = h("div", { class: "screen" }, pageHead("Courses", sous), h("div", { class: "scroll" }, children), fab());
   return { el, tab: "" };
 }
 

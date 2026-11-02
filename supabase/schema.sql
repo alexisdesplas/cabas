@@ -11,6 +11,8 @@ create table if not exists public.foyers (
   rayons text[] not null default array['Fruits et légumes','Crèmerie','Boucherie et poisson','Épicerie','Boissons','Surgelés','Hygiène et maison'],
   created_at timestamptz not null default now()
 );
+-- Habituels du foyer (02/11/2026) : { "<nom normalisé>": { nom, rayon, n, le } }, mis à jour par le client à chaque ajout manuel.
+alter table public.foyers add column if not exists habituels jsonb not null default '{}'::jsonb;
 
 create table if not exists public.membres (
   user_id uuid primary key references auth.users(id) on delete cascade,

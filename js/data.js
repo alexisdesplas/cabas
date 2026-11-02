@@ -84,6 +84,7 @@ const demo = {
   async quitterFoyer() { this.st.foyer = null; this.save(); this.pousser(); },
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
+  async saveHabituels(h) { this.st.foyer.habituels = h; this.save(); },
   async addArticle(a) { this.st.articles.push({ id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async updateArticle(id, patch) { Object.assign(this.st.articles.find(a => a.id === id), patch, { updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async removeArticles(ids) { this.st.articles = this.st.articles.filter(a => !ids.includes(a.id)); state.majLe = Date.now(); this.save(); this.pousser(); },
@@ -180,6 +181,7 @@ const sb = {
   async quitterFoyer() { await this.rpc("quitter_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
   async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
   async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
+  async saveHabituels(habituels) { await this.envoyer(() => this.client.from("foyers").update({ habituels }).eq("id", state.foyer.id)); },
   async addArticle(a) {
     const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
@@ -213,8 +215,18 @@ export const init = () => moteur.init();
 export const synchroniser = async () => { if (moteur.charger) await moteur.charger(); else moteur.pousser(); state.majLe = Date.now(); notify(); };
 export const auth = { signUp: (p, e, m) => moteur.signUp(p, e, m), signIn: (e, m) => moteur.signIn(e, m), signOut: () => moteur.signOut(), resetPassword: e => moteur.resetPassword(e), updatePassword: m => moteur.updatePassword(m) };
 export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
+// Habituels du foyer : compteur par article ajouté à la main (pas ceux du menu), gardé dans foyers.habituels (jsonb).
+// Sert à l'écran Ajouter : « Habituels » et « Derniers ajouts ». Au pire, si la colonne manque, l'ajout marche quand même.
+export const habituels = () => Object.values(state.foyer?.habituels || {});
+const noterHabituel = async ({ nom, rayon }) => {
+  if (!state.foyer) return;
+  const k = norm(nom), h = { ...(state.foyer.habituels || {}) }, prev = h[k];
+  h[k] = { nom, rayon, n: (prev?.n || 0) + 1, le: new Date().toISOString() };
+  state.foyer.habituels = h;
+  try { await moteur.saveHabituels(h); } catch (e) { console.warn("habituels non enregistrés :", e.message); }
+};
 export const articles = {
-  add: a => moteur.addArticle(a),
+  add: async a => { await moteur.addArticle(a); noterHabituel(a); },
   update: (id, patch) => moteur.updateArticle(id, patch),
   toggle: id => { const a = state.articles.find(x => x.id === id); return moteur.updateArticle(id, { coche: !a.coche }); },
   remove: id => moteur.removeArticles([id]),
