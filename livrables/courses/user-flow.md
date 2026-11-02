@@ -1,6 +1,6 @@
 # User flow — Cabas   ·   Statut · Brouillon
 
-**Date** · 02/11/2026 (soir, mise à jour repas) — **Figma** · page `Cabas · User flow`, section `User flow — Cabas, 4 parcours · présentation du 02/11/2026 (mise à jour repas) · écrans de Cabas · App (A2, B2, C2) à 100 %` (id `367:1417`)
+**Date** · 02/11/2026 (soir, mise à jour repas) — **Figma** · page `Cabas · User flow`, section `User flow — Cabas, 4 parcours · présentation du 02/11/2026 (mise à jour repas) · écrans de Cabas · App (A2, B2, C2) à 100 %` (id `372:3025`)
 **Écrans** · à 100 %, jamais réduits (règle d'Alexis du 31/10/2026, écrite dans la skill `flux-ui`). 41 écrans posés (40 + 1 rappel), 34 flèches. Sources : sections `A2` (`347:2363`), `B2` (`350:3142`), `C2` (`350:4247`) de `Cabas · App`.
 
 ## Couloirs

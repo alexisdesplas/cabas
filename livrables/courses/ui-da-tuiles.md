@@ -21,7 +21,7 @@
 - **Gestes** : glisser à droite = dans le panier, à gauche = retirer ; tap = cocher ; appui long = modifier.
 - **Quantité** (écran Modifier) : compteur moins / valeur / plus, puces d'unité (g, kg, pièce) ; le pas suit l'unité, appui long pour taper la valeur.
 - **Tuiles posées sur la page** (accroches, aperçu, états vide/erreur) : sans fond, l'illustration seule ; le fond page des tuiles ne sert que dans une carte ou une ligne.
-- **Pas d'illustration pour les plats** (Alexis, 02/11 au soir) : les cartes de plat, l'aperçu du détail et les squelettes sont sans tuile. Les illustrations restent pour les articles et les accroches d'écran.
+- **Plats** : tuile illustrée sur les cartes de plat (60) et dans les aperçus des feuilles ; le détail d'un repas, lui, n'en a pas (Alexis, 02/11 au soir).
 - **Un plat se modifie, se remplace ou se retire** depuis un « ⋯ » sur sa carte ou les trois boutons du détail, en disant ce qui ne va pas (puces + champ libre). Retirer sort aussi du menu les articles encore à prendre.
 
 ## Écrans produits
@@ -56,4 +56,4 @@ Captures prises à l'échelle 1 pour les trois sections ; aucun débordement, au
 
 ## Contrôle anti-patterns
 
-Aucun signal. Un écart assumé et écrit : les teintes d'avatar empruntent aux couleurs d'état. Le user flow est à jour (section `367:1417`) et le code suit la DA (commit `98b9caf`).
+Aucun signal. Un écart assumé et écrit : les teintes d'avatar empruntent aux couleurs d'état. Le user flow est à jour (section `372:3025`) et le code suit la DA (commit `98b9caf`).
