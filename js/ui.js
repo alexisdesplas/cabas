@@ -147,10 +147,11 @@ export const input = props => h("input", { class: "input", ...props });
 // Feuille qui monte du bas, dans un <dialog> : poignée, titre à gauche, croix de 44 px à droite.
 export function sheet({ title, body }) {
   const dlg = h("dialog", { class: "sheet", "aria-label": title, onClose: () => dlg.remove() });
-  const close = () => dlg.close();
+  // Fermeture animée : la classe « out » joue la sortie, puis le dialog se ferme vraiment.
+  const close = () => { if (dlg.classList.contains("out")) return; dlg.classList.add("out"); setTimeout(() => dlg.close(), 170); };
   dlg.addEventListener("click", e => { if (e.target === dlg) close(); });
+  dlg.addEventListener("cancel", e => { e.preventDefault(); close(); });
   dlg.append(
-    h("div", { class: "sheet-grab", "aria-hidden": "true" }),
     h("div", { class: "sheet-head" }, h("h2", null, title), h("button", { class: "sheet-close", type: "button", "aria-label": "Fermer", onClick: close }, icon("x"))),
     h("div", { class: "sheet-body" }, typeof body === "function" ? body(close) : body));
   document.body.append(dlg);
