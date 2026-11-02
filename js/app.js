@@ -38,7 +38,7 @@ const TABS = [["", "cart", "Liste"], ["repas", "fork", "Repas"], ["foyer", "hous
 function tabbar(current) {
   return h("div", { class: "tabbar" },
     h("nav", { "aria-label": "Navigation principale" },
-      TABS.map(([route, ic, label]) => h("button", { class: "tab", "aria-current": current === route ? "page" : null, onClick: () => go(`#/${route}`) }, icon(ic), label))));
+      TABS.map(([route, ic, label]) => h("button", { class: "tab", "aria-current": current === route ? "page" : null, onClick: () => go(`#/${route}`) }, h("span", { class: "tab-ic" }, icon(ic)), label))));
 }
 
 const root = document.getElementById("app");
