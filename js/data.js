@@ -161,7 +161,7 @@ const sb = {
     for (const fn of file) { try { await fn(); } catch {} }
     state.enAttente = 0; await this.charger();
   },
-  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; return m || "Erreur inattendue."; },
+  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; if (/rate limit/i.test(m)) return "Trop d'e-mails envoyés : Supabase en limite 2 par heure. Réessaie dans une heure, ou cherche le précédent dans les indésirables."; return m || "Erreur inattendue."; },
   async signUp(prenom, email, mdp) {
     const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { prenom }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw new Error(this.erreur(error));
@@ -169,7 +169,8 @@ const sb = {
   },
   async signIn(email, mdp) { const { error } = await this.client.auth.signInWithPassword({ email, password: mdp }); if (error) throw new Error(this.erreur(error)); },
   async signOut() { await this.client.auth.signOut(); },
-  async resetPassword(email) { const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname + "#/compte/mot-de-passe" }); if (error) throw new Error(this.erreur(error)); },
+  // Pas de #route dans redirectTo : Supabase colle #access_token=… derrière, et le jeton ne serait plus lu. L'événement PASSWORD_RECOVERY (plus haut) ouvre l'écran du mot de passe.
+  async resetPassword(email) { const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (error) throw new Error(this.erreur(error)); },
   async updatePassword(mdp) { const { error } = await this.client.auth.updateUser({ password: mdp }); if (error) throw new Error(this.erreur(error)); },
   async rpc(nom, args) { const { data, error } = await this.client.rpc(nom, args); if (error) throw new Error(this.erreur(error)); return data; },
   async creerFoyer() { await this.rpc("creer_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },

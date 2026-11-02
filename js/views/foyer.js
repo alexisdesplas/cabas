@@ -36,12 +36,18 @@ export function foyerView() {
   const sous = seul ? `${f.nom} · créé ${dateShort(f.created_at)} · 1 personne` : `${f.nom} · ${plural(state.membres.length, "personne", "personnes")} · ${plural(state.articles.filter(a => !a.coche).length, "article sur la liste", "articles sur la liste")}`;
   const expire = new Date(f.code_expire_le) < new Date();
   const body = [];
-  if (seul) body.push(h("div", { class: "card" },
+  // La carte du code reste visible à deux (décision du 02/11/2026) : en premier quand on est seul, après les membres sinon.
+  const carteCode = h("div", { class: "card" },
     h("span", { class: "overline" }, "Code d'invitation"),
     h("span", { class: "display-sm num" }, f.code),
-    h("p", { class: "body-sm" }, expire ? "Ce code a expiré : demande-en un nouveau." : `L'autre le saisit dans Cabas après avoir créé son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`),
-    expire ? btn("Nouveau code", { variant: "primary", size: "lg", full: true, onClick: () => foyer.renouvelerCode() }) : btn("Partager le code", { variant: "primary", size: "lg", full: true, icon: "share", onClick: partagerCode })));
-  body.push(bloc("Membres", membresCarte(), !seul && btn("Inviter quelqu'un d'autre", { variant: "ghost", full: true, onClick: async () => { if (expire) await foyer.renouvelerCode(); partagerCode(); } })));
+    h("p", { class: "body-sm" }, expire ? "Ce code a expiré : demande-en un nouveau." : seul
+      ? `L'autre le saisit dans Cabas après avoir créé son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`
+      : `Pour inviter quelqu'un d'autre dans ${f.nom}. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`),
+    expire ? btn("Nouveau code", { variant: "primary", size: "lg", full: true, onClick: () => foyer.renouvelerCode() })
+      : btn("Partager le code", { variant: seul ? "primary" : "secondary", size: "lg", full: true, icon: "share", onClick: partagerCode }));
+  if (seul) body.push(carteCode);
+  body.push(bloc("Membres", membresCarte()));
+  if (!seul) body.push(carteCode);
   body.push(bloc("Rayons du magasin",
     h("div", { class: "card" }, h("p", { class: "body-sm", style: { color: "var(--texte-base)" } }, f.rayons.join(" · ")), h("p", { class: "caption" }, "La liste suit cet ordre. Celui de votre magasin habituel."), btn("Modifier l'ordre", { variant: "ghost", full: true, onClick: () => go("#/foyer/rayons") }))));
   body.push(bloc("Compte", compteCarte()));
