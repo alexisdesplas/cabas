@@ -157,9 +157,30 @@ export function confirmSheet({ title, message, confirmLabel, cancelLabel = "Annu
   ] });
 }
 
-export function toast(text) {
-  document.querySelector(".toast")?.remove();
-  const t = h("div", { class: "toast", role: "status" }, text);
-  document.body.append(t);
-  setTimeout(() => t.remove(), 2500);
+// Toast : un seul à la fois, remplacé en douceur. Ton « info » (sans icône), « succes » (coche), « erreur » (rouge, triangle).
+// Placé au-dessus de la barre d'onglets ; en haut si un champ a le focus (le clavier couvre le bas). Durée selon la longueur.
+// Action facultative : { label, onClick }, ex. « Annuler » après un ajout. Un tap sur le toast le ferme.
+let toastTimer = null;
+export function toast(text, { tone = "info", action, duree } = {}) {
+  const haut = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "");
+  const sansOnglets = !document.querySelector(".tabbar");
+  const ic = tone === "erreur" ? "warning" : tone === "succes" ? "check" : null;
+  const classe = `toast ${tone}${haut ? " haut" : ""}${sansOnglets ? " sans-onglets" : ""}`;
+  let el = document.querySelector(".toast");
+  const fermer = () => { if (!el?.isConnected) return; clearTimeout(toastTimer); el.classList.remove("on"); const cible = el; setTimeout(() => cible.remove(), 220); };
+  const contenu = [ic && icon(ic), h("span", { class: "toast-texte" }, text),
+    action && h("button", { type: "button", class: "toast-action", onClick: e => { e.stopPropagation(); fermer(); action.onClick(); } }, action.label)];
+  if (el && el.classList.contains("on")) {
+    el.className = `${classe} on`; el.replaceChildren(...contenu);
+    el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+  } else {
+    el?.remove();
+    el = h("div", { class: classe, role: tone === "erreur" ? "alert" : "status", "aria-live": tone === "erreur" ? "assertive" : "polite", onClick: fermer }, ...contenu);
+    document.body.append(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("on")));
+  }
+  clearTimeout(toastTimer);
+  const ms = duree ?? Math.min(6000, Math.max(tone === "erreur" ? 4000 : action ? 3500 : 2000, 1200 + text.length * 45));
+  toastTimer = setTimeout(fermer, ms);
+  return fermer;
 }

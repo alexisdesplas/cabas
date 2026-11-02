@@ -85,7 +85,7 @@ const demo = {
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
   async saveHabituels(h) { this.st.foyer.habituels = h; this.save(); },
-  async addArticle(a) { this.st.articles.push({ id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
+  async addArticle(a) { const art = { id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }; this.st.articles.push(art); state.majLe = Date.now(); this.save(); this.pousser(); return art.id; },
   async updateArticle(id, patch) { Object.assign(this.st.articles.find(a => a.id === id), patch, { updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async removeArticles(ids) { this.st.articles = this.st.articles.filter(a => !ids.includes(a.id)); state.majLe = Date.now(); this.save(); this.pousser(); },
   async saveMenu(menu) { this.st.menu = { id: uid(), created_at: new Date().toISOString(), ajoute: false, ...menu }; this.save(); this.pousser(); return this.st.menu; },
@@ -186,6 +186,7 @@ const sb = {
     const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
     await this.envoyer(() => this.client.from("articles").insert(row));
+    return row.id;
   },
   async updateArticle(id, patch) {
     Object.assign(state.articles.find(a => a.id === id) || {}, patch); notify();
@@ -225,8 +226,17 @@ const noterHabituel = async ({ nom, rayon }) => {
   state.foyer.habituels = h;
   try { await moteur.saveHabituels(h); } catch (e) { console.warn("habituels non enregistrés :", e.message); }
 };
+const retirerHabituel = async nom => {
+  const k = norm(nom), h = { ...(state.foyer?.habituels || {}) };
+  if (!h[k]) return;
+  if (h[k].n > 1) h[k] = { ...h[k], n: h[k].n - 1 }; else delete h[k];
+  state.foyer.habituels = h;
+  try { await moteur.saveHabituels(h); } catch {}
+};
 export const articles = {
-  add: async a => { await moteur.addArticle(a); noterHabituel(a); },
+  add: async a => { const id = await moteur.addArticle(a); noterHabituel(a); return id; },
+  // « Annuler » juste après un ajout : l'article et sa trace dans les habituels s'en vont.
+  annulerAjout: async (id, nom) => { await moteur.removeArticles([id]); await retirerHabituel(nom); },
   update: (id, patch) => moteur.updateArticle(id, patch),
   toggle: id => { const a = state.articles.find(x => x.id === id); return moteur.updateArticle(id, { coche: !a.coche }); },
   remove: id => moteur.removeArticles([id]),

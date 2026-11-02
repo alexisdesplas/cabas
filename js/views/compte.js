@@ -41,7 +41,7 @@ export function connecterView() {
     action: "Me connecter",
     onSubmit: v => auth.signIn(v.email.trim(), v.mdp),
     apres: v => [
-      btn("Mot de passe oublié ?", { variant: "ghost", full: true, onClick: async () => { if (!v.email?.trim()) { toast("Écris ton adresse e-mail d'abord"); return; } try { await auth.resetPassword(v.email.trim()); toast("E-mail envoyé : suis le lien reçu"); } catch (e) { toast(e.message); } } }),
+      btn("Mot de passe oublié ?", { variant: "ghost", full: true, onClick: async () => { if (!v.email?.trim()) { toast("Écris ton adresse e-mail d'abord"); return; } try { await auth.resetPassword(v.email.trim()); toast("E-mail envoyé : suis le lien reçu", { tone: "succes" }); } catch (e) { toast(e.message, { tone: "erreur" }); } } }),
       h("div", { class: "espace" }),
       bascule("Pas encore de compte ?", "Créer mon compte", "#/compte/creer"),
       DEMO && h("p", { class: "caption", style: { textAlign: "center" } }, "Mode démo : n'importe quel e-mail et mot de passe passent (« faux » refuse).")
@@ -85,6 +85,6 @@ export function motDePasseView() {
     texte: "Tu viens du lien reçu par e-mail. Une fois enregistré, tu es connecté et tu retrouves la liste du foyer.",
     champs: [{ id: "mdp", label: "Nouveau mot de passe", type: "password", placeholder: "8 caractères au moins", autocomplete: "new-password", requis: true }],
     action: "Enregistrer le mot de passe",
-    onSubmit: async v => { if (v.mdp.length < 8) throw new Error("8 caractères au moins."); await auth.updatePassword(v.mdp); toast("Mot de passe enregistré"); go("#/"); }
+    onSubmit: async v => { if (v.mdp.length < 8) throw new Error("8 caractères au moins."); await auth.updatePassword(v.mdp); toast("Mot de passe enregistré", { tone: "succes" }); go("#/"); }
   });
 }
