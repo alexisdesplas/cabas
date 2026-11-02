@@ -1,5 +1,5 @@
 import { state, menus, achats, articles, lundi, dateKey, notify } from "../data.js";
-import { illustration, illustrationCle } from "../illustrations.js";
+import { illustration, illustrationCle, illustrationPlat } from "../illustrations.js";
 import { avatarsDuFoyer } from "./liste.js";
 import { h, icon, btn, navbar, hint, field, input, stepper, chips, jauge, sheet, confirmSheet, toast, go, dateShort, plural, tuile, enTete, titreSection } from "../ui.js";
 
@@ -41,10 +41,11 @@ export function repasView() {
   return { el, tab: "repas" };
 }
 
-// Carte d'un plat (sans illustration, décision du 02/11/2026) : jour, plat, temps et articles. Tap : le détail. « ⋯ » : modifier, remplacer, retirer.
+// Carte d'un plat : tuile illustrée, jour, plat, temps et articles. Tap : le détail. « ⋯ » : modifier, remplacer, retirer. (Le détail, lui, n'a pas d'illustration : Alexis, 02/11/2026.)
 function carteRepas(r, i, { actions, onOpen }) {
   return h("div", { class: "row plat" },
     h("button", { type: "button", class: "row-main plat-ouvrir", onClick: onOpen },
+      tuile(illustrationPlat(r.plat), 56),
       h("span", { class: "overline accent" }, r.jour),
       h("span", { class: "heading-md" }, r.plat),
       h("span", { class: "caption" }, `${r.temps_min} min · ${plural(aAcheterDe(r), "article à acheter", "articles à acheter")}`)),
@@ -175,8 +176,8 @@ function feuilleDemande({ titre, plat, question, aide, raisons, placeholder, bou
 
 // Aperçu d'un plat proposé dans une feuille : plat, temps, articles, ingrédients à tuile.
 const apercuPlat = r => h("div", { class: "card apercu" },
-  h("span", { class: "overline accent" }, r.jour), h("span", { class: "heading-md" }, r.plat),
-  h("span", { class: "caption" }, `${r.temps_min} min · ${plural(aAcheterDe(r), "article à acheter", "articles à acheter")}`),
+  h("div", { class: "apercu-haut" }, tuile(illustrationPlat(r.plat), 56), h("div", { class: "row-main" }, h("span", { class: "overline accent" }, r.jour), h("span", { class: "heading-md" }, r.plat),
+    h("span", { class: "caption" }, `${r.temps_min} min · ${plural(aAcheterDe(r), "article à acheter", "articles à acheter")}`))),
   h("div", { class: "apercu-ings" }, r.ingredients.map(x => h("span", { class: `pill${x.deja_la ? "" : " accent"}` }, x.nom))));
 
 // Le plat reste, un détail change : Claude renvoie la même recette ajustée.
