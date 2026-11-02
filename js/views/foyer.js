@@ -1,18 +1,18 @@
-import { state, foyer, auth, synchroniser, DEMO } from "../data.js";
-import { h, icon, btn, navbar, pageHead, pill, field, input, confirmSheet, toast, go, dateShort, plural } from "../ui.js";
+import { state, foyer, auth, synchroniser, DEMO, teinteDe, initialeDe } from "../data.js";
+import { illustrationCle } from "../illustrations.js";
+import { h, icon, btn, navbar, pageHead, pill, field, input, confirmSheet, toast, go, dateShort, plural, tuile, avatar, enTete, titreSection } from "../ui.js";
 
-const initiales = p => (p || "?").split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase();
 
 // Créateur : la colonne cree_par ; à défaut (ancien schéma), le plus ancien compte du foyer.
 const createur = () => state.foyer?.cree_par || [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0]?.user_id;
 
 function membresCarte() {
   const moiCreateur = createur() === state.user.id;
-  return h("div", { class: "list" }, state.membres.map(m => {
+  return h("div", { class: "lignes" }, [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(m => {
     const moi = m.user_id === state.user.id, cree = m.user_id === createur();
-    const sous = [moi ? "toi" : null, cree ? "a créé le foyer" : moi ? null : "membre"].filter(Boolean).join(" · ");
+    const sous = [moi ? "toi" : null, cree ? "a créé le foyer" : `a rejoint le ${dateShort(m.created_at)}`].filter(Boolean).join(" · ");
     return h("div", { class: "row" },
-      h("span", { class: "initiales" }, initiales(m.prenom)),
+      avatar(initialeDe(m.prenom), teinteDe(m.user_id), "md"),
       h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, m.prenom || "Sans prénom"), h("span", { class: "caption" }, sous)),
       moiCreateur && !moi && btn("Retirer", { variant: "ghost", onClick: () => retirer(m) }));
   }));
@@ -38,7 +38,7 @@ function compteCarte() {
       btn("Synchroniser", { variant: "secondary", onClick: async () => { await synchroniser(); toast("À jour", { tone: "succes" }); } }),
       btn("Se déconnecter", { variant: "ghost", onClick: () => confirmSheet({ title: "Se déconnecter ?", message: "La liste reste sur le compte et chez l'autre. Tu la retrouves en te reconnectant.", confirmLabel: "Se déconnecter", cancelLabel: "Rester connecté", onConfirm: () => auth.signOut() }) })));
 }
-const bloc = (titre, ...contenu) => h("div", { class: "bloc" }, h("h2", { class: "heading-md" }, titre), ...contenu);
+const bloc = (titre, ...contenu) => h("div", { class: "groupe" }, titreSection(titre.toUpperCase()), ...contenu);
 
 async function partagerCode() {
   const f = state.foyer, texte = `Rejoins notre foyer Cabas avec le code ${f.code} — ${location.origin}${location.pathname}`;
@@ -53,19 +53,18 @@ export function foyerView() {
   const body = [];
   // La carte du code reste visible à deux (décision du 02/11/2026) : en premier quand on est seul, après les membres sinon.
   const carteCode = h("div", { class: "card" },
-    h("span", { class: "overline" }, "Code d'invitation"),
-    h("span", { class: "display-sm num" }, f.code),
+    h("div", { class: "code-haut" }, tuile(illustrationCle("house"), 56), h("div", { class: "row-main" }, h("span", { class: "overline" }, "Code d'invitation"), h("span", { class: "display-sm num" }, f.code))),
     h("p", { class: "body-sm" }, expire ? "Ce code a expiré : demande-en un nouveau." : seul
       ? `L'autre le saisit dans Cabas après avoir créé son compte. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`
       : `Pour inviter quelqu'un d'autre dans ${f.nom}. Valable jusqu'au ${dateShort(f.code_expire_le)}, puis un nouveau code.`),
     expire ? btn("Nouveau code", { variant: "primary", size: "lg", full: true, onClick: () => foyer.renouvelerCode() })
       : btn("Partager le code", { variant: seul ? "primary" : "secondary", size: "lg", full: true, icon: "share", onClick: partagerCode }));
-  if (seul) body.push(carteCode);
+  if (seul) body.push(bloc("Inviter", carteCode));
   body.push(bloc("Membres", membresCarte()));
-  if (!seul) body.push(carteCode);
+  if (!seul) body.push(bloc("Inviter", carteCode));
   body.push(bloc("Compte", compteCarte()));
   if (!seul) body.push(btn("Quitter le foyer", { variant: "ghost", full: true, onClick: () => confirmSheet({ title: "Quitter le foyer ?", message: `Tu ne verras plus la liste ni les repas de ${f.nom}. L'autre les garde, et pourra t'inviter de nouveau.`, confirmLabel: "Quitter le foyer", cancelLabel: "Rester", destructive: true, onConfirm: () => foyer.quitter() }) }));
-  const el = h("div", { class: "screen" }, pageHead("Foyer", sous), h("div", { class: "scroll" }, body));
+  const el = h("div", { class: "screen" }, h("div", { class: "scroll" }, enTete(f.nom.toUpperCase(), "Foyer"), h("p", { class: "caption num entete-sous" }, sous), body));
   return { el, tab: "foyer" };
 }
 

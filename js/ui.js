@@ -31,6 +31,8 @@ const PATHS = {
   sparkle: "M128 24l20 60 60 20-60 20-20 60-20-60-60-20 60-20zM208 168l8 24 24 8-24 8-8 24-8-24-24-8 24-8z",
   warning: "M128 104v40M128 180v4M114 40 22 200a16 16 0 0 0 14 24h184a16 16 0 0 0 14-24L142 40a16 16 0 0 0-28 0z",
   pencil: "M92 216H48v-44L168 52l44 44zM136 84l44 44",
+  more: "M60 136a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM128 136a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM196 136a8 8 0 1 0 0-16 8 8 0 0 0 0 16z",
+  chevron: "M96 48l80 80-80 80",
   dots: "M100 60a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM156 60a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM100 136a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM156 136a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM100 212a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM156 212a8 8 0 1 0 0-16 8 8 0 0 0 0 16z",
   cloud: "M80 208a56 56 0 1 1 11-111 80 80 0 0 1 157 23 44 44 0 0 1-40 88zM96 144l24 24 48-48",
   wifiOff: "M48 48l160 160M128 200v4M72 152c16-16 36-24 56-24M40 112c24-24 56-36 88-36M184 152a72 72 0 0 0-12-10M216 112a124 124 0 0 0-28-22",
@@ -66,6 +68,18 @@ export function navbar({ back, title, subtitle, action }) {
       h("div", { class: "navbar-side end" },
         action && h("button", { class: "navbar-action", onClick: action.onClick, disabled: action.disabled }, action.label))));
 }
+
+// ——— DA « tuiles » (02/11/2026)
+// Tuile illustrée : fond page dans une ligne ou une carte (fond=true), illustration seule quand elle est posée sur la page.
+export const tuile = (src, taille = 44, fond = true) => h("span", { class: `tuile t${taille}${fond ? "" : " nue"}`, "aria-hidden": "true" }, h("img", { src, alt: "", loading: "lazy", decoding: "async" }));
+export const avatar = (initiale, teinte, taille = "sm", titre) => h("span", { class: `avatar av-${teinte} av-${taille}`, title: titre || null, "aria-label": titre || null }, initiale);
+// En-tête compact : surtitre en capitales, titre, et à droite les avatars du foyer (ou autre chose).
+export function enTete(sur, titre, droite) { return h("div", { class: "entete" }, h("div", { class: "entete-titre" }, h("span", { class: "overline" }, sur), h("h1", { class: "heading-xl" }, titre)), droite || null); }
+export const avatarsFoyer = membres => h("div", { class: "avatars" }, membres.map(m => m));
+// Compteur : grand chiffre, libellé, info à droite, barre fine.
+export function compteur(n, libelle, droite, pct, ton) { return h("div", { class: `compteur${ton ? " " + ton : ""}` }, h("div", { class: "compteur-ligne" }, h("span", { class: "display-sm num" }, String(n)), h("span", { class: "body-md discret" }, libelle), droite && h("span", { class: "caption num" }, droite)), h("div", { class: "barre" }, h("div", { class: "fait", style: { width: `${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%` } }))); }
+// Titre de section : capitales, filet, compte à droite.
+export const titreSection = (nom, droite) => h("div", { class: "sec" }, h("span", { class: "overline" }, nom), h("span", { class: "filet" }), droite != null && (droite instanceof Node ? droite : h("span", { class: "caption num" }, String(droite))));
 
 export function pageHead(title, subtitle, end) {
   return h("div", { class: "page-head" },
