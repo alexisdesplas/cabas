@@ -52,7 +52,7 @@ function champAjout() {
       return;
     }
     if (existant?.coche) { await articles.update(existant.id, { coche: false, ...(quantite ? { quantite } : {}) }); toast(`${existant.nom} remis à prendre`); return; }
-    await articles.add({ nom, quantite, rayon });
+    try { await articles.add({ nom, quantite, rayon }); } catch (e) { toast(e.message || "L'ajout a échoué"); }
   };
   if (brouillonFocus) setTimeout(() => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); proposer(); });
   return h("div", { class: "add-wrap" },
