@@ -85,6 +85,7 @@ const demo = {
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
   async saveHabituels(h) { this.st.foyer.habituels = h; this.save(); },
+  async saveAchats(a) { this.st.foyer.achats = a; this.save(); },
   async addArticle(a) { const art = { id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }; this.st.articles.push(art); state.majLe = Date.now(); this.save(); this.pousser(); return art.id; },
   async updateArticle(id, patch) { Object.assign(this.st.articles.find(a => a.id === id), patch, { updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async removeArticles(ids) { this.st.articles = this.st.articles.filter(a => !ids.includes(a.id)); state.majLe = Date.now(); this.save(); this.pousser(); },
@@ -182,6 +183,7 @@ const sb = {
   async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
   async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
   async saveHabituels(habituels) { await this.envoyer(() => this.client.from("foyers").update({ habituels }).eq("id", state.foyer.id)); },
+  async saveAchats(achats) { await this.envoyer(() => this.client.from("foyers").update({ achats }).eq("id", state.foyer.id)); },
   async addArticle(a) {
     const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
@@ -233,6 +235,18 @@ const retirerHabituel = async nom => {
   state.foyer.habituels = h;
   try { await moteur.saveHabituels(h); } catch {}
 };
+// Achats : ce qui a été coché puis sorti de la liste (« Terminer les courses », « Vider le panier »), gardé dans foyers.achats
+// (jsonb nom normalisé → { nom, rayon, le }). Sert au formulaire Repas : « déjà dans les placards » précoché.
+export const achats = () => Object.values(state.foyer?.achats || {});
+const noterAchats = async liste => {
+  if (!state.foyer || !liste.length) return;
+  const h = { ...(state.foyer.achats || {}) }, le = new Date().toISOString();
+  for (const a of liste) h[norm(a.nom)] = { nom: a.nom, rayon: a.rayon, le };
+  // On garde les 60 plus récents : assez pour trois semaines de courses.
+  const garde = Object.entries(h).sort((x, y) => new Date(y[1].le) - new Date(x[1].le)).slice(0, 60);
+  state.foyer.achats = Object.fromEntries(garde);
+  try { await moteur.saveAchats(state.foyer.achats); } catch (e) { console.warn("achats non enregistrés :", e.message); }
+};
 export const articles = {
   add: async a => { const id = await moteur.addArticle(a); noterHabituel(a); return id; },
   // « Annuler » juste après un ajout : l'article et sa trace dans les habituels s'en vont.
@@ -240,7 +254,7 @@ export const articles = {
   update: (id, patch) => moteur.updateArticle(id, patch),
   toggle: id => { const a = state.articles.find(x => x.id === id); return moteur.updateArticle(id, { coche: !a.coche }); },
   remove: id => moteur.removeArticles([id]),
-  viderPanier: () => moteur.removeArticles(state.articles.filter(a => a.coche).map(a => a.id)),
+  viderPanier: async () => { const coches = state.articles.filter(a => a.coche); await moteur.removeArticles(coches.map(a => a.id)); noterAchats(coches); },
   decocherTout: async () => { for (const a of state.articles.filter(a => a.coche)) await moteur.updateArticle(a.id, { coche: false }); }
 };
 export const menus = {

@@ -127,6 +127,16 @@ export function stepper({ value, min = 0, max = 14, format = String, label, onCh
     h("button", { type: "button", "aria-label": `Plus ${label}`, ...hold(1) }, icon("plus")));
 }
 
+// Jauge : un curseur à pas, le remplissage suit la valeur (variable --pct), la valeur formatée est rendue à part.
+export function jauge({ value, min = 0, max = 100, step = 1, format = String, label, onChange }) {
+  const input = h("input", { type: "range", min, max, step, value, "aria-label": label });
+  const valeur = h("span", { class: "jauge-valeur num" });
+  const maj = () => { const v = Number(input.value); valeur.textContent = format(v); input.style.setProperty("--pct", `${((v - min) / (max - min)) * 100}%`); };
+  input.addEventListener("input", () => { maj(); onChange(Number(input.value)); });
+  maj();
+  return { el: h("div", { class: "jauge" }, input), valeur };
+}
+
 // Champ Hardwood : libellé, saisie, aide (ou erreur).
 export function field({ label, help, error, input }) {
   return h("div", { class: `field${error ? " error" : ""}` },

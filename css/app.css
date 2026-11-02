@@ -163,6 +163,32 @@ button.row:active { background: var(--fond-discret); }
 .ajout-vide { padding: var(--spacing-8) var(--spacing-4); }
 
 /* Compteur et barre de progression */
+/* Carte de progression de la liste */
+.progression { background: linear-gradient(135deg, var(--accent-soft) 0%, var(--fond-carte) 65%); border-color: var(--accent-soft); gap: var(--spacing-16); }
+.progression.fini { background: linear-gradient(135deg, var(--etat-succes-soft) 0%, var(--fond-carte) 65%); border-color: var(--etat-succes-soft); }
+.progression-haut { display: flex; align-items: center; gap: var(--spacing-16); }
+.anneau-wrap { position: relative; width: 72px; height: 72px; flex: none; display: grid; place-items: center; }
+.anneau { position: absolute; inset: 0; width: 72px; height: 72px; transform: rotate(-90deg); }
+.anneau circle { fill: none; stroke-width: 6; }
+.anneau-fond { stroke: var(--fond-carte); }
+.anneau-trait { stroke: var(--accent-base); stroke-linecap: round; transition: stroke-dashoffset 500ms var(--ease); }
+.anneau-chiffre { position: relative; font: 700 26px/32px var(--font); letter-spacing: -0.02em; color: var(--texte-fort); display: grid; place-items: center; }
+.anneau-chiffre svg { width: 28px; height: 28px; }
+.progression.fini .anneau-trait { stroke: var(--etat-succes); }
+.progression.fini .anneau-chiffre { color: var(--etat-succes); }
+.progression-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Jauge (curseur) */
+.jauge-carte { gap: var(--spacing-8); padding: var(--spacing-12) var(--spacing-16) var(--spacing-12); }
+.jauge input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; margin: 0; background: transparent; touch-action: pan-y; }
+.jauge input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--accent-base) var(--pct, 0%), var(--fond-discret) var(--pct, 0%)); }
+.jauge input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--fond-carte); border: 2px solid var(--accent-base); box-shadow: 0 2px 8px var(--ombre); }
+.jauge input[type="range"]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--fond-discret); }
+.jauge input[type="range"]::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--accent-base); }
+.jauge input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--fond-carte); border: 2px solid var(--accent-base); box-shadow: 0 2px 8px var(--ombre); }
+.jauge input[type="range"]:focus-visible { outline: none; }
+.jauge input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--accent-soft); }
+.jauge-reperes { display: flex; justify-content: space-between; margin-top: -4px; }
+.jauge-valeur { font: 600 16px/24px var(--font); color: var(--accent-texte); }
 .count { display: flex; align-items: baseline; gap: var(--spacing-12); }
 .track { position: relative; height: 8px; border-radius: 4px; background: var(--fond-discret); overflow: hidden; }
 .fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--accent-base); transition: width 400ms var(--ease); }
