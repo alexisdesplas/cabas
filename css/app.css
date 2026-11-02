@@ -38,7 +38,15 @@ html, body { margin: 0; height: 100%; background: var(--fond-page); }
 body { color: var(--texte-base); font: 400 14px/20px var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--accent-base); outline-offset: 2px; }
+/* Focus clavier : un anneau accent qui épouse les coins (double ombre : un liseré page, puis l'accent), jamais le rectangle bleu du navigateur.
+   Les éléments rognés par leur parent (lignes glissables) prennent l'anneau à l'intérieur ; les onglets le portent sur leur pastille. */
+:focus-visible { outline: none; }
+.btn:focus-visible, .fab:focus-visible, .lien:focus-visible, .chip:focus-visible, .unite:focus-visible, .qte-btn:focus-visible, .qte-valeur:focus-visible, .plus-rond:focus-visible, .plat-plus:focus-visible, .sheet-close:focus-visible, .toast-action:focus-visible, .bascule button:focus-visible, .navbar-back:focus-visible, .navbar-action:focus-visible, .segmented button:focus-visible, .row.suggestion:focus-visible, .row.choix:focus-visible, .plat-ouvrir:focus-visible, select.input:focus-visible { box-shadow: 0 0 0 2px var(--fond-page), 0 0 0 4px var(--accent-base); }
+.plat-ouvrir:focus-visible { border-radius: var(--radius-md); }
+.article:focus-visible { box-shadow: inset 0 0 0 2px var(--accent-base); }
+.tab:focus-visible .tab-ic { box-shadow: 0 0 0 2px var(--fond-page), 0 0 0 4px var(--accent-base); }
+.input:focus-visible, textarea.input:focus-visible { outline: none; border-color: var(--accent-base); box-shadow: 0 0 0 1px var(--accent-base); }
+.code-reel:focus-visible ~ .case.active, .code-cases:focus-within .case.active { border-color: var(--accent-base); box-shadow: 0 0 0 1px var(--accent-base); }
 .num { font-variant-numeric: tabular-nums; }
 
 /* ——— Styles de texte Hardwood */
@@ -78,9 +86,9 @@ p { margin: 0; }
 .navbar-title span { font: 400 12px/16px var(--font); color: var(--texte-discret); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* ——— Barre d'onglets (proposition locale : Liste · Repas · Foyer)
-   Fond page opaque sans filet, une ombre douce vers le haut ; l'onglet actif porte une pastille accent large sous l'icône, libellé en gras. */
-/* Fond strictement celui de la page, opaque, sans flou ni éclaircissement (Alexis : pas de blanc) ; seule une ombre très légère la détache du contenu qui passe dessous */
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 480px; margin: 0 auto; background: var(--fond-page); box-shadow: 0 -8px 24px rgba(21, 22, 30, .05); padding-bottom: var(--safe-bottom); }
+   Fond page opaque, un filet discret ; l'onglet actif porte une pastille accent large sous l'icône, libellé en gras. */
+/* Fond strictement celui de la page, opaque, sans flou ni ombre (l'ombre assombrissait le pourtour et faisait paraître la barre blanche) ; un simple filet la sépare du contenu */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 480px; margin: 0 auto; background: var(--fond-page); border-top: 1px solid var(--bord-discret); padding-bottom: var(--safe-bottom); }
 .tabbar nav { display: grid; grid-template-columns: repeat(3, 1fr); height: 64px; padding: 0 var(--spacing-12); }
 .tab { border: 0; background: none; padding: 6px 0 0; color: var(--texte-discret); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; font: 500 12px/16px var(--font); letter-spacing: .01em; -webkit-tap-highlight-color: transparent; }
 .tab-ic { width: 64px; height: 32px; border-radius: var(--radius-full); display: grid; place-items: center; transition: background-color 200ms var(--ease), transform 140ms var(--ease); }
