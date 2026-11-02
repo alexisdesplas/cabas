@@ -4,10 +4,9 @@ import { h, icon, btn, navbar, pageHead, hint, field, input, stepper, chips, seg
 const ENVIES = ["Végétarien", "Rapide", "De saison", "Poisson", "Réconfortant", "Batch cooking", "Léger"];
 const TEMPS = [["20 min", "20 min"], ["40 min", "40 min"], ["1 h", "1 h"], ["", "Peu importe"]];
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-const momentLabel = m => (m === "dejeuner" ? "déjeuner" : "dîner");
 
 // Ce qui se passe entre le formulaire et le menu enregistré vit ici, le temps de la session.
-let demande = { diners: 5, dejeuners: 0, personnes: 2, envies: ["Végétarien", "Rapide", "De saison"], temps: "40 min", eviter: "", placards: "" };
+let demande = { repas: 5, personnes: 2, envies: ["Végétarien", "Rapide", "De saison"], temps: "40 min", eviter: "", placards: "" };
 let etat = null; // null | { phase: "prepare" | "propose" | "erreur", menu?, erreur?, depuis? }
 
 export function repasView() {
@@ -33,7 +32,7 @@ export function repasView() {
 function carteRepas(r, i, { changer, onOpen }) {
   return h("div", { class: "card repas" },
     h("button", { class: "row-main", style: { border: 0, background: "none", padding: 0, cursor: "pointer", textAlign: "left", color: "inherit" }, onClick: onOpen },
-      h("span", { class: "overline" }, `${cap(r.jour)}${r.moment === "dejeuner" ? " · midi" : ""}`),
+      h("span", { class: "overline" }, cap(r.jour)),
       h("span", { class: "heading-md" }, r.plat),
       h("span", { class: "caption" }, `${r.temps_min} min · ${plural(r.ingredients.filter(x => !x.deja_la).length, "article à acheter", "articles à acheter")}`)),
     changer && btn("Changer", { variant: "ghost", onClick: () => changerPlat(i) }));
@@ -43,17 +42,15 @@ export function repasFormView() {
   const d = demande;
   const ligne = (titre, sous, ctrl) => h("div", { class: "field-row" }, h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, titre), h("span", { class: "caption" }, sous)), ctrl);
   const combien = h("div", { class: "card combien" },
-    ligne("Dîners", "les soirs de la semaine", stepper({ value: d.diners, max: 7, label: "dîners", onChange: v => { d.diners = v; verif(); } })),
-    ligne("Déjeuners", "les midis à la maison", stepper({ value: d.dejeuners, max: 7, label: "déjeuners", onChange: v => { d.dejeuners = v; verif(); } })),
+    ligne("Repas", "à cuisiner cette semaine", stepper({ value: d.repas, min: 1, max: 14, label: "repas", onChange: v => { d.repas = v; verif(); } })),
     ligne("Personnes", "pour les quantités", stepper({ value: d.personnes, min: 1, max: 8, label: "personnes", onChange: v => { d.personnes = v; verif(); } })));
-  const err = h("p", { class: "caption erreur", style: { display: "none" } }, "Choisis au moins un dîner ou un déjeuner.");
+  const err = h("p", { class: "caption erreur", style: { display: "none" } }, "Choisis au moins un repas.");
   const resume = h("p", { class: "caption num" });
   const envoyer = btn("Préparer le menu", { variant: "primary", size: "lg", full: true, icon: "sparkle", onClick: () => lancer() });
   const verif = () => {
-    const ok = d.diners + d.dejeuners > 0;
+    const ok = d.repas > 0;
     err.style.display = ok ? "none" : ""; envoyer.disabled = !ok;
-    const repas = [d.diners && plural(d.diners, "dîner", "dîners"), d.dejeuners && plural(d.dejeuners, "déjeuner", "déjeuners")].filter(Boolean).join(" et ") || "aucun repas";
-    resume.textContent = `${repas} · ${plural(d.personnes, "personne", "personnes")}${d.temps ? ` · ${d.temps} max` : ""}`;
+    resume.textContent = `${plural(d.repas, "repas", "repas")} · ${plural(d.personnes, "personne", "personnes")}${d.temps ? ` · ${d.temps} max` : ""}`;
   };
   verif();
   const el = h("div", { class: "screen formulaire" },
@@ -90,7 +87,7 @@ function rappel() {
 }
 
 function etatView() {
-  const d = demande, n = d.diners + d.dejeuners;
+  const d = demande, n = d.repas;
   let body;
   if (etat.phase === "prepare") body = [
     h("div", { class: "card center" }, h("div", { class: "rond pulse" }, icon("sparkle")),
@@ -123,8 +120,8 @@ async function changerPlat(i) {
   const r = source.repas[i];
   const dlg = sheet({ title: `Changer le plat de ${r.jour}`, body: [h("p", { class: "body-md" }, "Avec les mêmes envies, Claude propose à la place :"), h("div", { class: "card skeleton" }, h("i", { class: "s" }), h("i", { class: "t" }), h("i", { class: "d" }))] });
   try {
-    const res = await menus.demander({ ...demande, remplacer: { jour: r.jour, moment: r.moment, plat: r.plat }, autres: source.repas.map(x => x.plat) });
-    const nouveau = { ...res.repas[0], jour: r.jour, moment: r.moment };
+    const res = await menus.demander({ ...demande, remplacer: { jour: r.jour, plat: r.plat }, autres: source.repas.map(x => x.plat) });
+    const nouveau = { ...res.repas[0], jour: r.jour };
     const corps = dlg.querySelector(".sheet-body");
     corps.replaceChildren(h("p", { class: "body-md" }, "Avec les mêmes envies, Claude propose à la place :"),
       carteRepas(nouveau, i, { changer: false, onOpen: () => detailSheet(nouveau) }),
