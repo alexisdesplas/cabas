@@ -1,4 +1,4 @@
-import { state, foyer, auth, synchroniser, DEMO, teinteDe, initialeDe } from "../data.js";
+import { state, foyer, auth, synchroniser, DEMO, teinteDe, initialeDe, invitation } from "../data.js";
 import { illustrationCle } from "../illustrations.js";
 import { h, icon, btn, navbar, pageHead, pill, field, input, confirmSheet, toast, go, dateShort, plural, tuile, avatar, enTete, titreSection } from "../ui.js";
 
@@ -41,9 +41,10 @@ function compteCarte() {
 const bloc = (titre, ...contenu) => h("div", { class: "groupe" }, titreSection(titre.toUpperCase()), ...contenu);
 
 async function partagerCode() {
-  const f = state.foyer, texte = `Rejoins notre foyer Cabas avec le code ${f.code} — ${location.origin}${location.pathname}`;
-  if (navigator.share) { try { await navigator.share({ title: "Cabas", text: texte }); } catch {} return; }
-  try { await navigator.clipboard.writeText(f.code); toast("Code copié", { tone: "succes" }); } catch { toast(f.code); }
+  // On partage un lien : il ouvre Cabas sur l'écran Rejoindre avec le code déjà saisi ; le code reste dans le texte pour qui préfère le taper.
+  const f = state.foyer, url = invitation.lien(f.code), texte = `Rejoins notre foyer sur Cabas, la liste de courses à deux. Code ${f.code}.`;
+  if (navigator.share) { try { await navigator.share({ title: "Cabas · rejoindre notre foyer", text: texte, url }); } catch {} return; }
+  try { await navigator.clipboard.writeText(`${texte} ${url}`); toast("Lien d'invitation copié", { tone: "succes" }); } catch { toast(url); }
 }
 
 export function foyerView() {
@@ -122,7 +123,9 @@ export function rayonsView() {
 // Saisie du code d'invitation en six cases (décision du 02/11/2026). Un seul vrai champ, invisible, couvre les cases :
 // le clavier s'ouvre au tap, le collage « 7KQ-4MZ » passe, et le sixième caractère valide tout seul.
 export function rejoindreView() {
-  let code = "", err = null, enCours = false;
+  // Arrivé par un lien d'invitation : le code est déjà là, on vérifie tout de suite.
+  const recu = invitation.lire().replace("-", "");
+  let code = recu, err = null, enCours = false;
   const nettoyer = v => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
   const cases = Array.from({ length: 6 }, () => h("span", { class: "case", "aria-hidden": "true" }));
   const reel = h("input", { class: "code-reel", type: "text", inputmode: "text", autocapitalize: "characters", autocomplete: "one-time-code", autocorrect: "off", spellcheck: "false", maxlength: "7", "aria-label": "Code d'invitation, six caractères",
@@ -140,17 +143,17 @@ export function rejoindreView() {
   async function valider() {
     if (code.length !== 6 || enCours) return;
     enCours = true; rendre();
-    try { await foyer.rejoindre(`${code.slice(0, 3)}-${code.slice(3)}`); go("#/"); toast(`Bienvenue dans ${state.foyer?.nom || "le foyer"}`, { tone: "succes" }); }
-    catch (e) { err = e.message; enCours = false; code = ""; reel.value = ""; rendre(); reel.focus(); }
+    try { await foyer.rejoindre(`${code.slice(0, 3)}-${code.slice(3)}`); invitation.oublier(); go("#/"); toast(`Bienvenue dans ${state.foyer?.nom || "le foyer"}`, { tone: "succes" }); }
+    catch (e) { invitation.oublier(); err = e.message; enCours = false; code = ""; reel.value = ""; rendre(); reel.focus(); }
   }
   const grille = h("div", { class: "code-cases" }, cases.slice(0, 3), h("span", { class: "tiret", "aria-hidden": "true" }, "–"), cases.slice(3), reel);
   const el = h("div", { class: "screen no-tabs" },
     navbar({ back: { label: "Votre foyer", href: "#/foyer" }, title: "Rejoindre un foyer" }),
     h("div", { class: "scroll" },
-      h("p", { class: "body-md" }, "Saisis le code que l'autre te montre dans son onglet Foyer. Il reste valable sept jours."),
+      h("p", { class: "body-md" }, recu ? "Tu as suivi un lien d'invitation : le code est déjà saisi." : "Saisis le code que l'autre te montre dans son onglet Foyer. Il reste valable sept jours."),
       h("div", { class: "card code-carte" }, h("span", { class: "overline" }, "Code d'invitation"), grille, aide),
       bouton));
   rendre();
-  setTimeout(() => reel.focus(), 0);
+  if (recu.length === 6) { reel.value = recu; setTimeout(valider, 0); } else setTimeout(() => reel.focus(), 0);
   return { el };
 }

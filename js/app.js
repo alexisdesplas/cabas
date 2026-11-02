@@ -1,5 +1,5 @@
-import { state, subscribe, init, DEMO } from "./data.js";
-import { h, icon, go } from "./ui.js";
+import { state, subscribe, init, DEMO, invitation } from "./data.js";
+import { h, icon, go, toast } from "./ui.js";
 import { listeView, articleView } from "./views/liste.js";
 import { ajouterView } from "./views/ajouter.js";
 import { repasView, repasFormView, repasDetailView } from "./views/repas.js";
@@ -17,6 +17,7 @@ const ROUTES = [
   ["foyer", foyerView],
   ["foyer/rayons", rayonsView],
   ["foyer/rejoindre", rejoindreView],
+  ["rejoindre/:code", rejoindreView],
   ["compte", connecterView],
   ["compte/creer", creerView],
   ["compte/valider", validerView],
@@ -47,9 +48,11 @@ let lastHash = null, courante = null;
 function render() {
   if (!state.pret) { root.replaceChildren(h("div", { class: "screen" }, h("div", { class: "scroll", style: { justifyContent: "center", alignItems: "center" } }, h("p", { class: "caption" }, "Cabas…")))); return; }
   let { view, params, pattern } = match(location.hash);
-  // Pas connecté : écrans de compte seulement. Connecté sans foyer : créer ou rejoindre.
+  // Lien d'invitation (#/rejoindre/CODE) : on garde le code, puis créer son compte, ou rejoindre tout de suite si on est connecté sans foyer.
+  if (pattern === "rejoindre/:code") { invitation.garder(params.code); go(!state.user ? "#/compte/creer" : state.foyer ? "#/" : "#/foyer/rejoindre"); if (state.user && state.foyer) { invitation.oublier(); toast("Tu fais déjà partie d'un foyer. Quitte-le depuis l'onglet Foyer pour en rejoindre un autre."); } return; }
+  // Pas connecté : écrans de compte seulement. Connecté sans foyer : créer ou rejoindre (directement si une invitation attend).
   if (!state.user && !pattern.startsWith("compte")) { view = connecterView; params = {}; }
-  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe") && pattern !== "foyer/rejoindre") { view = foyerChoixView; params = {}; }
+  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe") && pattern !== "foyer/rejoindre") { view = invitation.lire() ? rejoindreView : foyerChoixView; params = {}; }
   else if (state.user && state.foyer && pattern.startsWith("compte") && pattern !== "compte/mot-de-passe") { view = listeView; params = {}; }
   // Même écran, et la vue sait se mettre à jour sur place (écran Ajouter : le champ et le clavier restent) : pas de remplacement.
   if (location.hash === lastHash && courante?.view === view && courante.update && root.contains(courante.el)) { courante.update(); return; }

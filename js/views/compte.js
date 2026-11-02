@@ -1,9 +1,10 @@
-import { auth, DEMO } from "../data.js";
+import { auth, DEMO, invitation } from "../data.js";
 import { h, btn, navbar, field, input, toast, go, tuile } from "../ui.js";
 import { illustrationCle } from "../illustrations.js";
 
 // Accroche d'écran : illustration posée sur la page (sans fond), titre, texte.
-const entete = (titre, texte, illu = "shopping_cart") => h("div", { class: "compte-head" }, tuile(illustrationCle(illu), 96, false), h("h1", { class: "heading-xl" }, titre), h("p", { class: "body-md" }, texte));
+const entete = (titre, texte, illu = "shopping_cart") => h("div", { class: "compte-head" }, tuile(illustrationCle(illu), 96, false), h("h1", { class: "heading-xl" }, titre), h("p", { class: "body-md" }, texte),
+  invitation.lire() && h("div", { class: "bandeau" }, `Invitation reçue : code ${invitation.lire()}. Dès que ton compte est prêt, tu rejoins le foyer.`));
 const bascule = (question, lien, href) => h("div", { class: "bascule" }, h("span", { class: "body-md discret" }, question, " "), h("button", { type: "button", onClick: () => go(href) }, lien));
 
 // Un formulaire de compte : champs, erreurs sous le champ fautif, bouton qui attend pendant l'envoi.

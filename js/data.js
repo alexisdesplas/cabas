@@ -27,6 +27,14 @@ export const uid = () => Math.random().toString(36).slice(2, 10);
 // UUID v4 : crypto.randomUUID n'existe qu'en contexte sécurisé (HTTPS ou localhost). Sur http://192.168.x.x il est absent, et l'ajout plantait en silence.
 export const uuid = () => crypto.randomUUID?.() ?? (() => { const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80; const h = [...b].map(x => x.toString(16).padStart(2, "0")).join(""); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; })();
 // Avatars : une teinte par membre dans l'ordre d'arrivée dans le foyer (DA du 02/11/2026).
+// Invitation reçue par lien (#/rejoindre/CODE) : gardée dans la session le temps de créer son compte ou de se connecter.
+export const invitation = {
+  lire: () => sessionStorage.getItem("cabas-invitation") || "",
+  garder: code => { const c = (code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); if (c.length === 6) sessionStorage.setItem("cabas-invitation", `${c.slice(0, 3)}-${c.slice(3)}`); },
+  oublier: () => sessionStorage.removeItem("cabas-invitation"),
+  // Le lien que l'on partage : il ouvre l'app sur l'écran Rejoindre, code prérempli (le mode démo reste en démo).
+  lien: code => `${location.origin}${location.pathname}${DEMO ? "?demo" : ""}#/rejoindre/${code}`
+};
 export const TEINTES = ["indigo", "vert", "ambre", "rose"];
 export const teinteDe = id => { const ordre = [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); const i = ordre.findIndex(m => m.user_id === id); return TEINTES[(i < 0 ? ordre.length : i) % TEINTES.length]; };
 export const initialeDe = p => ((p || "?").trim()[0] || "?").toUpperCase();
