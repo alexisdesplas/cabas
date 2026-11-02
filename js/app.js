@@ -1,19 +1,23 @@
-import { state, subscribe, init, DEMO } from "./data.js";
-import { h, icon, go } from "./ui.js";
+import { state, subscribe, init, DEMO, invitation } from "./data.js";
+import { h, icon, go, toast } from "./ui.js";
 import { listeView, articleView } from "./views/liste.js";
+import { ajouterView } from "./views/ajouter.js";
 import { repasView, repasFormView, repasDetailView } from "./views/repas.js";
-import { foyerView, foyerChoixView, rayonsView } from "./views/foyer.js";
+import { foyerView, foyerChoixView, rayonsView, rejoindreView } from "./views/foyer.js";
 import { connecterView, creerView, validerView, motDePasseView } from "./views/compte.js";
 
 // Routes : #/chemin/:param. Chaque vue renvoie { el, tab? }.
 const ROUTES = [
   ["", listeView],
+  ["ajouter", ajouterView],
   ["article/:id", articleView],
   ["repas", repasView],
   ["repas/formulaire", repasFormView],
   ["repas/:i", repasDetailView],
   ["foyer", foyerView],
   ["foyer/rayons", rayonsView],
+  ["foyer/rejoindre", rejoindreView],
+  ["rejoindre/:code", rejoindreView],
   ["compte", connecterView],
   ["compte/creer", creerView],
   ["compte/valider", validerView],
@@ -35,22 +39,26 @@ const TABS = [["", "cart", "Liste"], ["repas", "fork", "Repas"], ["foyer", "hous
 function tabbar(current) {
   return h("div", { class: "tabbar" },
     h("nav", { "aria-label": "Navigation principale" },
-      TABS.map(([route, ic, label]) => h("button", { class: "tab", "aria-current": current === route ? "page" : null, onClick: () => go(`#/${route}`) }, icon(ic), label))));
+      TABS.map(([route, ic, label]) => h("button", { class: "tab", "aria-current": current === route ? "page" : null, onClick: () => go(`#/${route}`) }, h("span", { class: "tab-ic" }, icon(current === route ? `${ic}Fill` : ic)), label))));
 }
 
 const root = document.getElementById("app");
-let lastHash = null;
+let lastHash = null, courante = null;
 
 function render() {
   if (!state.pret) { root.replaceChildren(h("div", { class: "screen" }, h("div", { class: "scroll", style: { justifyContent: "center", alignItems: "center" } }, h("p", { class: "caption" }, "Cabas…")))); return; }
   let { view, params, pattern } = match(location.hash);
-  // Pas connecté : écrans de compte seulement. Connecté sans foyer : créer ou rejoindre.
+  // Lien d'invitation (#/rejoindre/CODE) : on garde le code, puis créer son compte, ou rejoindre tout de suite si on est connecté sans foyer.
+  if (pattern === "rejoindre/:code") { invitation.garder(params.code); go(!state.user ? "#/compte/creer" : state.foyer ? "#/" : "#/foyer/rejoindre"); if (state.user && state.foyer) { invitation.oublier(); toast("Tu fais déjà partie d'un foyer. Quitte-le depuis l'onglet Foyer pour en rejoindre un autre."); } return; }
+  // Pas connecté : écrans de compte seulement. Connecté sans foyer : créer ou rejoindre (directement si une invitation attend).
   if (!state.user && !pattern.startsWith("compte")) { view = connecterView; params = {}; }
-  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe")) { view = foyerChoixView; params = {}; }
+  else if (state.user && !state.foyer && !pattern.startsWith("compte/mot-de-passe") && pattern !== "foyer/rejoindre") { view = invitation.lire() ? rejoindreView : foyerChoixView; params = {}; }
   else if (state.user && state.foyer && pattern.startsWith("compte") && pattern !== "compte/mot-de-passe") { view = listeView; params = {}; }
+  // Même écran, et la vue sait se mettre à jour sur place (écran Ajouter : le champ et le clavier restent) : pas de remplacement.
+  if (location.hash === lastHash && courante?.view === view && courante.update && root.contains(courante.el)) { courante.update(); return; }
   const scroller = root.querySelector(".scroll");
   const keep = location.hash === lastHash && scroller ? scroller.scrollTop : 0;
-  const current = view(params);
+  const current = view(params); current.view = view; courante = current;
   root.replaceChildren(current.el);
   if (current.tab !== undefined) root.append(tabbar(current.tab));
   const next = root.querySelector(".scroll");
