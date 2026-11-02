@@ -59,7 +59,7 @@ p { margin: 0; }
 /* ——— Coque */
 .app { height: 100dvh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; position: relative; }
 .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--spacing-16) var(--spacing-20) calc(96px + var(--safe-bottom)); display: flex; flex-direction: column; gap: var(--spacing-16); }
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--spacing-16) var(--spacing-20) calc(104px + var(--safe-bottom)); display: flex; flex-direction: column; gap: var(--spacing-16); }
 .scroll > * { flex-shrink: 0; }
 .screen.no-tabs .scroll { padding-bottom: calc(var(--spacing-24) + var(--safe-bottom)); }
 .page-head { padding: calc(var(--safe-top) + 12px) var(--spacing-20) 0; display: grid; grid-template-columns: 1fr auto; align-items: start; gap: var(--spacing-12); }
@@ -77,17 +77,18 @@ p { margin: 0; }
 .navbar-title h1 { font: 600 16px/24px var(--font); color: var(--texte-fort); margin: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .navbar-title span { font: 400 12px/16px var(--font); color: var(--texte-discret); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
-/* ——— Barre d'onglets (proposition locale : Liste · Repas · Foyer) */
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 480px; margin: 0 auto; background: rgba(244, 245, 249, .92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--bord-discret); padding-bottom: var(--safe-bottom); }
-.tabbar nav { display: grid; grid-template-columns: repeat(3, 1fr); height: 58px; }
-/* Onglet : pastille accent douce derrière l'icône active, trait plus appuyé, libellé en gras */
-.tab { border: 0; background: none; padding: 4px 0 0; color: var(--texte-discret); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 500 11px/14px var(--font); -webkit-tap-highlight-color: transparent; }
-.tab-ic { width: 56px; height: 30px; border-radius: var(--radius-full); display: grid; place-items: center; transition: background-color 180ms var(--ease), transform 120ms var(--ease); }
-.tab svg { width: 24px; height: 24px; transition: transform 180ms var(--ease); }
-.tab:active .tab-ic { transform: scale(.92); background: var(--fond-discret); }
+/* ——— Barre d'onglets (proposition locale : Liste · Repas · Foyer)
+   Fond page translucide sans filet, une ombre douce vers le haut ; l'onglet actif porte une pastille accent large sous l'icône, libellé en gras. */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 480px; margin: 0 auto; background: rgba(244, 245, 249, .88); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); box-shadow: 0 -1px 0 rgba(21, 22, 30, .04), 0 -12px 32px rgba(21, 22, 30, .05); padding-bottom: var(--safe-bottom); }
+.tabbar nav { display: grid; grid-template-columns: repeat(3, 1fr); height: 64px; padding: 0 var(--spacing-12); }
+.tab { border: 0; background: none; padding: 6px 0 0; color: var(--texte-discret); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; font: 500 12px/16px var(--font); letter-spacing: .01em; -webkit-tap-highlight-color: transparent; }
+.tab-ic { width: 64px; height: 32px; border-radius: var(--radius-full); display: grid; place-items: center; transition: background-color 200ms var(--ease), transform 140ms var(--ease); }
+.tab svg { width: 24px; height: 24px; transition: transform 200ms var(--ease); }
+.tab:active .tab-ic { transform: scale(.94); background: var(--fond-discret); }
 .tab[aria-current="page"] { color: var(--accent-texte); font-weight: 600; }
 .tab[aria-current="page"] .tab-ic { background: var(--accent-soft); }
-.tab[aria-current="page"] svg { stroke-width: 20; }
+.tab[aria-current="page"] svg { stroke-width: 20; transform: translateY(-0.5px); }
+@media (prefers-reduced-motion: reduce) { .tab-ic, .tab svg { transition: none; } }
 
 /* ——— Bouton */
 .btn { height: 40px; padding: 0 var(--spacing-12); border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-8); border: 1px solid transparent; font: 500 13px/20px var(--font); white-space: nowrap; transition: background-color 150ms var(--ease), opacity 150ms var(--ease), transform 100ms var(--ease); }
@@ -148,7 +149,7 @@ button.row:active { background: var(--fond-discret); }
 .suggest .row.libre .fort { color: var(--accent-texte); }
 
 /* Bouton flottant « Ajouter » : en bas à droite, au-dessus de la barre d'onglets, centré sur la coque de 480 px */
-.fab { position: fixed; right: max(20px, calc(50% - 240px + 20px)); bottom: calc(56px + var(--safe-bottom) + 16px); width: 56px; height: 56px; border-radius: var(--radius-full); border: 0; background: var(--accent-base); color: var(--texte-inverse); display: grid; place-items: center; box-shadow: 0 8px 24px var(--ombre); z-index: 9; transition: transform 100ms var(--ease); }
+.fab { position: fixed; right: max(20px, calc(50% - 240px + 20px)); bottom: calc(64px + var(--safe-bottom) + 16px); width: 56px; height: 56px; border-radius: var(--radius-full); border: 0; background: var(--accent-base); color: var(--texte-inverse); display: grid; place-items: center; box-shadow: 0 8px 24px var(--ombre); z-index: 9; transition: transform 100ms var(--ease); }
 .fab svg { width: 26px; height: 26px; }
 .fab:active { transform: scale(.94); }
 /* Écran Ajouter : champ collé en haut, zone de suggestions ou d'habituels dessous */
@@ -296,7 +297,7 @@ dialog.sheet.out::backdrop { animation: fond-out 180ms var(--ease) forwards; }
 
 /* ——— Toast */
 /* Toast clair, fixé en bas au-dessus de la barre d'onglets, pleine largeur moins les marges (décision du 02/11/2026) */
-.toast { position: fixed; left: 50%; bottom: calc(68px + var(--safe-bottom)); transform: translate(-50%, 8px); opacity: 0; z-index: 20; display: flex; align-items: center; gap: var(--spacing-12); width: calc(100% - 32px); max-width: 448px; background: var(--fond-carte); color: var(--texte-fort); padding: 12px 14px; border: 1px solid var(--bord-discret); border-radius: var(--radius-md); font: 500 14px/20px var(--font); box-shadow: 0 12px 32px rgba(23, 23, 31, .14), 0 2px 6px var(--ombre); transition: opacity 180ms var(--ease), transform 180ms var(--ease); cursor: default; }
+.toast { position: fixed; left: 50%; bottom: calc(76px + var(--safe-bottom)); transform: translate(-50%, 8px); opacity: 0; z-index: 20; display: flex; align-items: center; gap: var(--spacing-12); width: calc(100% - 32px); max-width: 448px; background: var(--fond-carte); color: var(--texte-fort); padding: 12px 14px; border: 1px solid var(--bord-discret); border-radius: var(--radius-md); font: 500 14px/20px var(--font); box-shadow: 0 12px 32px rgba(23, 23, 31, .14), 0 2px 6px var(--ombre); transition: opacity 180ms var(--ease), transform 180ms var(--ease); cursor: default; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 .toast.sans-onglets { bottom: calc(16px + var(--safe-bottom)); }
 .toast.haut { bottom: auto; top: calc(var(--safe-top) + 128px); transform: translate(-50%, -8px); } /* sous la barre et le champ de l'écran Ajouter */
