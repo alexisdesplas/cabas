@@ -3,7 +3,8 @@
 // les derniers achats. Chaque ligne ajoute d'un tap sans quitter l'écran ; « Terminé » ramène à la liste.
 import { state, articles, chercherArticle, devinerRayon, habituels, RAYONS_DEFAUT } from "../data.js";
 import { suggerer, produitExact, analyser, norm } from "../produits.js";
-import { h, icon, btn, navbar, input, toast, go, plural } from "../ui.js";
+import { h, icon, btn, navbar, input, toast, go, plural, tuile, titreSection } from "../ui.js";
+import { illustration, illustrationCle } from "../illustrations.js";
 
 let brouillon = "", ajoutes = 0, ouvertLe = 0;
 
@@ -27,9 +28,10 @@ export function ajouterView() {
 
   function vider() { brouillon = ""; inp.value = ""; rendre(); inp.focus(); }
 
-  const ligne = (nom, sous, onPick, libre) => h("button", { type: "button", class: `row${libre ? " libre" : ""}`, onPointerdown: e => e.preventDefault(), onClick: onPick },
-    h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, nom), sous && h("span", { class: "caption" }, sous)), icon("plus", "plus"));
-  const section = (titre, lignes) => [h("div", { class: "section-title" }, h("h2", { class: "heading-md" }, titre)), h("div", { class: "list" }, lignes)];
+  const ligne = (nom, sous, onPick, libre, rayon) => h("button", { type: "button", class: `row suggestion${libre ? " libre" : ""}`, onPointerdown: e => e.preventDefault(), onClick: onPick },
+    tuile(libre ? illustrationCle("shopping_cart") : illustration(nom, rayon), 44),
+    h("div", { class: "row-main" }, h("span", { class: "body-md medium fort" }, nom), sous && h("span", { class: "caption" }, sous)), h("span", { class: "plus-rond" }, icon("plus")));
+  const section = (titre, lignes) => [titreSection(titre.toUpperCase()), h("div", { class: "lignes" }, lignes)];
 
   // En tapant : ce que le foyer connaît (liste + habituels), puis le catalogue, puis « Ajouter « … » ».
   function suggestions() {
@@ -39,10 +41,10 @@ export function ajouterView() {
     const lignes = suggerer(nom, connus).map(p => {
       const rayon = rayonConnu(p.rayon) || devinerRayon(p.nom);
       const deja = dansLaListe(p.nom);
-      return ligne(p.nom, `${rayon}${qte}${deja ? " · déjà dans la liste" : ""}`, () => ajouter({ nom: p.nom, quantite, rayon }));
+      return ligne(p.nom, `${rayon}${qte}${deja ? " · déjà dans la liste" : ""}`, () => ajouter({ nom: p.nom, quantite, rayon }), false, rayon);
     });
     if (nom.length > 1 && !produitExact(nom) && !lignes.some(l => norm(l.textContent) === norm(nom))) lignes.push(ligne(`Ajouter « ${nom} »`, `${devinerRayon(nom)}${qte}`, () => ajouter({ nom, quantite }), true));
-    return lignes.length ? [h("div", { class: "list" }, lignes)] : [h("p", { class: "caption ajout-vide" }, "Continue à taper : au moins deux lettres.")];
+    return lignes.length ? [h("div", { class: "lignes" }, lignes)] : [h("p", { class: "caption ajout-vide" }, "Continue à taper : au moins deux lettres.")];
   }
 
   // Avant de taper : habituels (les plus ajoutés) et derniers achats, sans ceux déjà à prendre.
@@ -52,10 +54,10 @@ export function ajouterView() {
     const vus = new Set(top.map(x => norm(x.nom)));
     const recents = [...tous].filter(x => !vus.has(norm(x.nom))).sort((a, b) => new Date(b.le) - new Date(a.le)).slice(0, 8);
     const out = [];
-    if (top.length) out.push(...section("Habituels", top.map(x => ligne(x.nom, `${rayonConnu(x.rayon) || devinerRayon(x.nom)} · ${plural(x.n, "fois", "fois")}`, () => ajouter({ nom: x.nom, rayon: rayonConnu(x.rayon) || undefined })))));
-    if (recents.length) out.push(...section("Derniers ajouts", recents.map(x => ligne(x.nom, rayonConnu(x.rayon) || devinerRayon(x.nom), () => ajouter({ nom: x.nom, rayon: rayonConnu(x.rayon) || undefined })))));
-    if (!out.length) out.push(h("div", { class: "card" },
-      h("p", { class: "body-md medium fort" }, "Tape le nom d'un article"),
+    if (top.length) out.push(...section("Habituels", top.map(x => ligne(x.nom, `${rayonConnu(x.rayon) || devinerRayon(x.nom)} · ajouté ${plural(x.n, "fois", "fois")}`, () => ajouter({ nom: x.nom, rayon: rayonConnu(x.rayon) || undefined }), false, x.rayon))));
+    if (recents.length) out.push(...section("Derniers ajouts", recents.map(x => ligne(x.nom, rayonConnu(x.rayon) || devinerRayon(x.nom), () => ajouter({ nom: x.nom, rayon: rayonConnu(x.rayon) || undefined }), false, x.rayon))));
+    if (!out.length) out.push(h("div", { class: "card vide" }, tuile(illustrationCle("shopping_cart"), 96, false),
+      h("p", { class: "heading-md" }, "Tape le nom d'un article"),
       h("p", { class: "body-sm discret" }, "Les produits courants se proposent avec leur rayon, et la quantité se dit dans la phrase : « 3 courgettes », « 500 g riz ». Tes habitudes apparaîtront ici au fil des courses.")));
     return out;
   }

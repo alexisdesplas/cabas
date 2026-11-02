@@ -1,11 +1,13 @@
 import { auth, DEMO } from "../data.js";
-import { h, icon, btn, navbar, field, input, toast, go } from "../ui.js";
+import { h, btn, navbar, field, input, toast, go, tuile } from "../ui.js";
+import { illustrationCle } from "../illustrations.js";
 
-const entete = (titre, texte) => h("div", { class: "compte-head" }, h("div", { class: "rond" }, icon("house")), h("h1", { class: "heading-xl" }, titre), h("p", { class: "body-md" }, texte));
+// Accroche d'écran : illustration posée sur la page (sans fond), titre, texte.
+const entete = (titre, texte, illu = "shopping_cart") => h("div", { class: "compte-head" }, tuile(illustrationCle(illu), 96, false), h("h1", { class: "heading-xl" }, titre), h("p", { class: "body-md" }, texte));
 const bascule = (question, lien, href) => h("div", { class: "bascule" }, h("span", { class: "body-md discret" }, question, " "), h("button", { type: "button", onClick: () => go(href) }, lien));
 
 // Un formulaire de compte : champs, erreurs sous le champ fautif, bouton qui attend pendant l'envoi.
-function formulaire({ titre, texte, champs, action, onSubmit, apres }) {
+function formulaire({ titre, texte, illu, champs, action, onSubmit, apres }) {
   const vals = {}, errs = {};
   const rendu = () => {
     const inputs = champs.map(c => {
@@ -21,7 +23,7 @@ function formulaire({ titre, texte, champs, action, onSubmit, apres }) {
       if (Object.keys(errs).length) { redessiner(); return; }
       envoyer.disabled = true; envoyer.textContent = "…";
       try { await onSubmit(vals); } catch (err) { errs[champsErreur(err.message, champs)] = err.message; redessiner(); }
-    } }, entete(titre, texte), ...inputs, envoyer, ...(apres ? apres(vals) : []));
+    } }, entete(titre, texte, illu), ...inputs, envoyer, ...(apres ? apres(vals) : []));
     return h("div", { class: "screen no-tabs" }, form);
   };
   let el = rendu();
@@ -51,7 +53,7 @@ export function connecterView() {
 
 export function creerView() {
   return formulaire({
-    titre: "Créer ton compte",
+    titre: "Créer ton compte", illu: "party_popper",
     texte: "Un compte par personne : on sait qui a ajouté quoi, et chacun garde la liste sur son téléphone.",
     champs: [
       { id: "prenom", label: "Prénom", placeholder: "Alexis", autocomplete: "given-name", help: "Affiché à côté de ce que tu ajoutes.", requis: true },
@@ -73,7 +75,7 @@ export function validerView() {
   const el = h("div", { class: "screen no-tabs" },
     navbar({ back: { label: "Connexion", href: "#/compte" }, title: "Compte créé" }),
     h("div", { class: "scroll" },
-      entete("Ton adresse va être validée", `Un e-mail est parti à ${email} : suis le lien pour valider ton adresse, puis connecte-toi. Ensuite, vous créez ou rejoignez votre foyer.`),
+      entete("Ton adresse va être validée", `Un e-mail est parti à ${email} : suis le lien pour valider ton adresse, puis connecte-toi. Ensuite, vous créez ou rejoignez votre foyer.`, "hot_beverage"),
       btn("Me connecter", { variant: "primary", size: "lg", full: true, onClick: () => go("#/compte") })));
   return { el };
 }
@@ -81,7 +83,7 @@ export function validerView() {
 // Depuis le lien « mot de passe oublié » : Supabase a ouvert une session de récupération.
 export function motDePasseView() {
   return formulaire({
-    titre: "Choisis un nouveau mot de passe",
+    titre: "Choisis un nouveau mot de passe", illu: "hot_beverage",
     texte: "Tu viens du lien reçu par e-mail. Une fois enregistré, tu es connecté et tu retrouves la liste du foyer.",
     champs: [{ id: "mdp", label: "Nouveau mot de passe", type: "password", placeholder: "8 caractères au moins", autocomplete: "new-password", requis: true }],
     action: "Enregistrer le mot de passe",

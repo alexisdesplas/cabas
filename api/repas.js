@@ -35,12 +35,15 @@ export default async function handler(req, res) {
   const nbRepas = Math.min(14, Number(d.repas) || (Number(d.diners) || 0) + (Number(d.dejeuners) || 0)), personnes = Number(d.personnes) || 2;
   if (nbRepas === 0) return res.status(400).json({ erreur: "au moins un repas" });
   const rayons = Array.isArray(d.rayons) && d.rayons.length ? d.rayons : ["Fruits et légumes", "Crèmerie", "Boucherie et poisson", "Épicerie", "Boissons", "Surgelés", "Hygiène et maison"];
-  const remplacer = d.remplacer; // { jour, plat } : on ne redemande que ce plat
+  const remplacer = d.remplacer; // { jour, plat, souhait? } : un autre plat à la place
+  const modifier = d.modifier;   // { jour, plat, remarque, ingredients? } : le même plat, ajusté (décision du 02/11/2026)
 
   const consigne = [
     `Tu prépares les repas de la semaine d'un foyer de ${personnes} personne${personnes > 1 ? "s" : ""}, en France, et la liste de courses qui va avec.`,
-    remplacer
-      ? `Propose UN SEUL autre plat pour ${remplacer.jour}, différent de « ${remplacer.plat} » et des autres plats du menu : ${(d.autres || []).join(", ") || "aucun"}.`
+    modifier
+      ? `Le plat de ${modifier.jour} est « ${modifier.plat} »${modifier.ingredients?.length ? ` (${modifier.ingredients.join(", ")})` : ""}. Garde ce plat et cette idée, mais ajuste la recette, les ingrédients et les quantités selon cette remarque : « ${modifier.remarque} ». Renvoie UN SEUL repas, pour ${modifier.jour}, avec un nom de plat proche de l'original.`
+      : remplacer
+      ? `Propose UN SEUL autre plat pour ${remplacer.jour}, différent de « ${remplacer.plat} » et des autres plats du menu : ${(d.autres || []).join(", ") || "aucun"}.${remplacer.souhait ? ` Ce qu'on voudrait à la place : « ${remplacer.souhait} ».` : ""}`
       : `Propose ${nbRepas} repas, du lundi au dimanche dans l'ordre (un par jour ; au-delà de sept, deux le même jour), sans répéter un plat ni un ingrédient principal deux jours de suite.`,
     d.envies?.length ? `Envies : ${d.envies.join(", ")}.` : "",
     d.temps ? `Un soir de semaine, ${d.temps} en cuisine au maximum.` : "",
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
     d.deja_liste?.length ? `Déjà sur la liste de courses (deja_la = true) : ${d.deja_liste.join(", ")}.` : "",
     `Rayons du magasin, à reprendre tels quels pour chaque ingrédient : ${rayons.join(" · ")}.`,
     "Les plats sont simples, de saison, avec des ingrédients qu'on trouve dans un supermarché français. Les quantités sont pour le nombre de personnes. Pas de sel, poivre ni huile sur la liste.",
-    remplacer ? "" : "Les plats restent au nombre demandé."
+    remplacer || modifier ? "" : "Les plats restent au nombre demandé."
   ].filter(Boolean).join("\n");
 
   try {

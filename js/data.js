@@ -26,6 +26,10 @@ export const notify = () => listeners.forEach(fn => fn());
 export const uid = () => Math.random().toString(36).slice(2, 10);
 // UUID v4 : crypto.randomUUID n'existe qu'en contexte sécurisé (HTTPS ou localhost). Sur http://192.168.x.x il est absent, et l'ajout plantait en silence.
 export const uuid = () => crypto.randomUUID?.() ?? (() => { const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80; const h = [...b].map(x => x.toString(16).padStart(2, "0")).join(""); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; })();
+// Avatars : une teinte par membre dans l'ordre d'arrivée dans le foyer (DA du 02/11/2026).
+export const TEINTES = ["indigo", "vert", "ambre", "rose"];
+export const teinteDe = id => { const ordre = [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); const i = ordre.findIndex(m => m.user_id === id); return TEINTES[(i < 0 ? ordre.length : i) % TEINTES.length]; };
+export const initialeDe = p => ((p || "?").trim()[0] || "?").toUpperCase();
 export const prenomDe = id => (id === state.user?.id ? "toi" : state.membres.find(m => m.user_id === id)?.prenom || "l'autre");
 export const lundi = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
 export const dateKey = d => new Date(d).toLocaleDateString("sv-SE");
@@ -105,7 +109,8 @@ const demo = {
       ex("samedi", "Dahl de lentilles corail et épinards", 25, [["Lentilles corail", "300 g", "Épicerie"], ["Épinards", "200 g", "Fruits et légumes"], ["Lait de coco", "1 boîte", "Épicerie"]], ["Cuire les lentilles 15 min dans le lait de coco et de l'eau.", "Ajouter les épinards 3 min.", "Servir avec du riz."]),
       ex("dimanche", "Risotto aux champignons", 35, [["Riz à risotto", "300 g", "Épicerie"], ["Champignons", "300 g", "Fruits et légumes"], ["Parmesan", "80 g", "Crèmerie"]], ["Faire revenir les champignons.", "Nacrer le riz, mouiller louche par louche 18 min.", "Finir avec le parmesan."])
     ];
-    if (demande.remplacer) return { repas: [tous.find(r => r.plat !== demande.remplacer.plat && !demande.autres?.includes(r.plat)) || tous[5]] };
+    if (demande.modifier) { const r = tous.find(x => x.plat === demande.modifier.plat) || tous[3]; const rem = demande.modifier.remarque || ""; return { repas: [{ ...r, plat: /pour 4/i.test(rem) ? r.plat : `${r.plat} (${rem.split(",")[0].toLowerCase()})`, temps_min: /moins long|rapide/i.test(rem) ? Math.max(10, r.temps_min - 10) : r.temps_min, ingredients: r.ingredients.filter(x => !new RegExp(x.nom.split(" ")[0], "i").test(rem)).map(x => /pour 4/i.test(rem) && /^\d/.test(x.quantite) ? { ...x, quantite: x.quantite.replace(/^\d+/, n => String(n * 2)) } : x) }] }; }
+    if (demande.remplacer) return { repas: [tous.find(r => r.plat !== demande.remplacer.plat && !demande.autres?.includes(r.plat) && (!/poisson/i.test(demande.remplacer.souhait || "") || /risotto|omelette/i.test(r.plat))) || tous[5]] };
     const n = Math.min(7, Number(demande.repas) || 0);
     return { repas: tous.slice(0, n) };
   },
