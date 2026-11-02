@@ -1,0 +1,1505 @@
+{
+ "_source": "Fluent Emoji 3D (Microsoft, MIT) — assets/<Dossier>/3D/<fichier>_3d.png. 230 images : tout « Food & Drink » (136) + maison, hygiène, animaux (92) + chips et herbes. Clé : nom de fichier sans extension ; « articles » : noms du catalogue qui l'utilisent ; « famille » : nourriture ou maison. Un article absent prend l'illustration de son rayon.",
+ "red_apple": {
+  "dossier": "Red apple",
+  "articles": [
+   "Pommes",
+   "Radis"
+  ],
+  "famille": "nourriture"
+ },
+ "pear": {
+  "dossier": "Pear",
+  "articles": [
+   "Poires"
+  ],
+  "famille": "nourriture"
+ },
+ "banana": {
+  "dossier": "Banana",
+  "articles": [
+   "Bananes"
+  ],
+  "famille": "nourriture"
+ },
+ "tangerine": {
+  "dossier": "Tangerine",
+  "articles": [
+   "Oranges",
+   "Clémentines",
+   "Jus d'orange"
+  ],
+  "famille": "nourriture"
+ },
+ "lemon": {
+  "dossier": "Lemon",
+  "articles": [
+   "Citrons",
+   "Citronnelle"
+  ],
+  "famille": "nourriture"
+ },
+ "strawberry": {
+  "dossier": "Strawberry",
+  "articles": [
+   "Fraises"
+  ],
+  "famille": "nourriture"
+ },
+ "grapes": {
+  "dossier": "Grapes",
+  "articles": [
+   "Raisin"
+  ],
+  "famille": "nourriture"
+ },
+ "kiwi_fruit": {
+  "dossier": "Kiwi fruit",
+  "articles": [
+   "Kiwis"
+  ],
+  "famille": "nourriture"
+ },
+ "avocado": {
+  "dossier": "Avocado",
+  "articles": [
+   "Avocats"
+  ],
+  "famille": "nourriture"
+ },
+ "mango": {
+  "dossier": "Mango",
+  "articles": [
+   "Mangue"
+  ],
+  "famille": "nourriture"
+ },
+ "pineapple": {
+  "dossier": "Pineapple",
+  "articles": [
+   "Ananas"
+  ],
+  "famille": "nourriture"
+ },
+ "peach": {
+  "dossier": "Peach",
+  "articles": [
+   "Pêches",
+   "Abricots"
+  ],
+  "famille": "nourriture"
+ },
+ "cherries": {
+  "dossier": "Cherries",
+  "articles": [
+   "Cerises"
+  ],
+  "famille": "nourriture"
+ },
+ "melon": {
+  "dossier": "Melon",
+  "articles": [
+   "Melon"
+  ],
+  "famille": "nourriture"
+ },
+ "watermelon": {
+  "dossier": "Watermelon",
+  "articles": [
+   "Pastèque"
+  ],
+  "famille": "nourriture"
+ },
+ "tomato": {
+  "dossier": "Tomato",
+  "articles": [
+   "Tomates",
+   "Tomates cerises",
+   "Tomates pelées",
+   "Coulis de tomate",
+   "Concentré de tomate",
+   "Ketchup"
+  ],
+  "famille": "nourriture"
+ },
+ "cucumber": {
+  "dossier": "Cucumber",
+  "articles": [
+   "Courgettes",
+   "Concombre"
+  ],
+  "famille": "nourriture"
+ },
+ "eggplant": {
+  "dossier": "Eggplant",
+  "articles": [
+   "Aubergines"
+  ],
+  "famille": "nourriture"
+ },
+ "bell_pepper": {
+  "dossier": "Bell pepper",
+  "articles": [
+   "Poivrons"
+  ],
+  "famille": "nourriture"
+ },
+ "carrot": {
+  "dossier": "Carrot",
+  "articles": [
+   "Carottes"
+  ],
+  "famille": "nourriture"
+ },
+ "potato": {
+  "dossier": "Potato",
+  "articles": [
+   "Pommes de terre"
+  ],
+  "famille": "nourriture"
+ },
+ "roasted_sweet_potato": {
+  "dossier": "Roasted sweet potato",
+  "articles": [
+   "Patates douces",
+   "Potimarron",
+   "Butternut",
+   "Betteraves"
+  ],
+  "famille": "nourriture"
+ },
+ "onion": {
+  "dossier": "Onion",
+  "articles": [
+   "Oignons",
+   "Oignons rouges",
+   "Échalotes",
+   "Poireaux",
+   "Navets"
+  ],
+  "famille": "nourriture"
+ },
+ "garlic": {
+  "dossier": "Garlic",
+  "articles": [
+   "Ail"
+  ],
+  "famille": "nourriture"
+ },
+ "broccoli": {
+  "dossier": "Broccoli",
+  "articles": [
+   "Brocoli",
+   "Chou-fleur"
+  ],
+  "famille": "nourriture"
+ },
+ "leafy_green": {
+  "dossier": "Leafy green",
+  "articles": [
+   "Épinards",
+   "Épinards surgelés",
+   "Fenouil",
+   "Céleri",
+   "Chou kale"
+  ],
+  "famille": "nourriture"
+ },
+ "green_salad": {
+  "dossier": "Green salad",
+  "articles": [
+   "Salade verte",
+   "Roquette",
+   "Mâche"
+  ],
+  "famille": "nourriture"
+ },
+ "mushroom": {
+  "dossier": "Mushroom",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "pea_pod": {
+  "dossier": "Pea pod",
+  "articles": [
+   "Haricots verts",
+   "Petits pois",
+   "Petits pois surgelés"
+  ],
+  "famille": "nourriture"
+ },
+ "ginger_root": {
+  "dossier": "Ginger root",
+  "articles": [
+   "Gingembre"
+  ],
+  "famille": "nourriture"
+ },
+ "herb": {
+  "dossier": "Herb",
+  "articles": [
+   "Persil",
+   "Coriandre fraîche",
+   "Basilic",
+   "Menthe",
+   "Ciboulette",
+   "Thym",
+   "Romarin",
+   "Herbes de Provence"
+  ],
+  "famille": "nourriture"
+ },
+ "glass_of_milk": {
+  "dossier": "Glass of milk",
+  "articles": [
+   "Crème fraîche",
+   "Lait d'amande",
+   "Lait d'avoine",
+   "Lait"
+  ],
+  "famille": "nourriture"
+ },
+ "butter": {
+  "dossier": "Butter",
+  "articles": [
+   "Beurre doux",
+   "Beurre demi-sel"
+  ],
+  "famille": "nourriture"
+ },
+ "egg": {
+  "dossier": "Egg",
+  "articles": [
+   "Œufs"
+  ],
+  "famille": "nourriture"
+ },
+ "cheese_wedge": {
+  "dossier": "Cheese wedge",
+  "articles": [
+   "Comté",
+   "Emmental râpé",
+   "Gruyère",
+   "Parmesan",
+   "Mozzarella",
+   "Feta",
+   "Chèvre",
+   "Camembert",
+   "Brie",
+   "Roquefort"
+  ],
+  "famille": "nourriture"
+ },
+ "flatbread": {
+  "dossier": "Flatbread",
+  "articles": [
+   "Tortillas"
+  ],
+  "famille": "nourriture"
+ },
+ "poultry_leg": {
+  "dossier": "Poultry leg",
+  "articles": [
+   "Poulet",
+   "Blancs de poulet",
+   "Cuisses de poulet",
+   "Escalopes de dinde"
+  ],
+  "famille": "nourriture"
+ },
+ "cut_of_meat": {
+  "dossier": "Cut of meat",
+  "articles": [
+   "Bœuf à bourguignon",
+   "Filet mignon"
+  ],
+  "famille": "nourriture"
+ },
+ "bacon": {
+  "dossier": "Bacon",
+  "articles": [
+   "Lardons",
+   "Jambon blanc",
+   "Jambon cru",
+   "Chorizo"
+  ],
+  "famille": "nourriture"
+ },
+ "fish": {
+  "dossier": "Fish",
+  "articles": [
+   "Saumon",
+   "Saumon fumé",
+   "Cabillaud",
+   "Truite",
+   "Thon frais"
+  ],
+  "famille": "maison"
+ },
+ "shrimp": {
+  "dossier": "Shrimp",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "oyster": {
+  "dossier": "Oyster",
+  "articles": [
+   "Moules"
+  ],
+  "famille": "nourriture"
+ },
+ "spaghetti": {
+  "dossier": "Spaghetti",
+  "articles": [
+   "Pâtes",
+   "Pâtes complètes",
+   "Spaghetti"
+  ],
+  "famille": "nourriture"
+ },
+ "cooked_rice": {
+  "dossier": "Cooked rice",
+  "articles": [
+   "Riz",
+   "Semoule",
+   "Quinoa",
+   "Boulgour",
+   "Riz basmati"
+  ],
+  "famille": "nourriture"
+ },
+ "beans": {
+  "dossier": "Beans",
+  "articles": [
+   "Lentilles",
+   "Lentilles corail",
+   "Pois chiches en boîte",
+   "Haricots rouges en boîte",
+   "Haricots noirs en boîte"
+  ],
+  "famille": "nourriture"
+ },
+ "ear_of_corn": {
+  "dossier": "Ear of corn",
+  "articles": [
+   "Maïs en boîte"
+  ],
+  "famille": "nourriture"
+ },
+ "coconut": {
+  "dossier": "Coconut",
+  "articles": [
+   "Lait de coco"
+  ],
+  "famille": "nourriture"
+ },
+ "canned_food": {
+  "dossier": "Canned food",
+  "articles": [
+   "Sardines",
+   "Thon en boîte"
+  ],
+  "famille": "nourriture"
+ },
+ "bread": {
+  "dossier": "Bread",
+  "articles": [
+   "Pain de mie",
+   "Levure",
+   "Farine"
+  ],
+  "famille": "nourriture"
+ },
+ "honey_pot": {
+  "dossier": "Honey pot",
+  "articles": [
+   "Miel"
+  ],
+  "famille": "nourriture"
+ },
+ "chocolate_bar": {
+  "dossier": "Chocolate bar",
+  "articles": [
+   "Chocolat noir",
+   "Chocolat au lait",
+   "Pépites de chocolat",
+   "Cacao",
+   "Pâte à tartiner"
+  ],
+  "famille": "nourriture"
+ },
+ "cookie": {
+  "dossier": "Cookie",
+  "articles": [
+   "Biscuits"
+  ],
+  "famille": "nourriture"
+ },
+ "olive": {
+  "dossier": "Olive",
+  "articles": [
+   "Huile d'olive"
+  ],
+  "famille": "nourriture"
+ },
+ "jar": {
+  "dossier": "Jar",
+  "articles": [
+   "Confiture",
+   "Pesto",
+   "Mayonnaise",
+   "Moutarde"
+  ],
+  "famille": "nourriture"
+ },
+ "salt": {
+  "dossier": "Salt",
+  "articles": [
+   "Sel",
+   "Poivre",
+   "Cumin"
+  ],
+  "famille": "nourriture"
+ },
+ "peanuts": {
+  "dossier": "Peanuts",
+  "articles": [
+   "Noix de cajou",
+   "Cacahuètes",
+   "Graines de courge",
+   "Amandes"
+  ],
+  "famille": "nourriture"
+ },
+ "potato_chips": {
+  "dossier": "Potato",
+  "articles": [
+   "Chips"
+  ],
+  "famille": "nourriture"
+ },
+ "hot_beverage": {
+  "dossier": "Hot beverage",
+  "articles": [
+   "Café"
+  ],
+  "famille": "nourriture"
+ },
+ "teacup_without_handle": {
+  "dossier": "Teacup without handle",
+  "articles": [
+   "Tisane"
+  ],
+  "famille": "nourriture"
+ },
+ "cup_with_straw": {
+  "dossier": "Cup with straw",
+  "articles": [
+   "Coca",
+   "Limonade"
+  ],
+  "famille": "nourriture"
+ },
+ "beer_mug": {
+  "dossier": "Beer mug",
+  "articles": [
+   "Bière"
+  ],
+  "famille": "nourriture"
+ },
+ "wine_glass": {
+  "dossier": "Wine glass",
+  "articles": [
+   "Vin rouge"
+  ],
+  "famille": "nourriture"
+ },
+ "ice_cream": {
+  "dossier": "Ice cream",
+  "articles": [
+   "Glace"
+  ],
+  "famille": "nourriture"
+ },
+ "french_fries": {
+  "dossier": "French fries",
+  "articles": [
+   "Frites surgelées"
+  ],
+  "famille": "nourriture"
+ },
+ "pizza": {
+  "dossier": "Pizza",
+  "articles": [
+   "Pâte à pizza",
+   "Pizza surgelée"
+  ],
+  "famille": "nourriture"
+ },
+ "ice": {
+  "dossier": "Ice",
+  "articles": [
+   "Glaçons"
+  ],
+  "famille": "nourriture"
+ },
+ "roll_of_paper": {
+  "dossier": "Roll of paper",
+  "articles": [
+   "Papier toilette",
+   "Essuie-tout",
+   "Mouchoirs",
+   "Papier aluminium",
+   "Papier cuisson",
+   "Film alimentaire"
+  ],
+  "famille": "maison"
+ },
+ "soap": {
+  "dossier": "Soap",
+  "articles": [
+   "Adoucissant",
+   "Savon",
+   "Lessive"
+  ],
+  "famille": "maison"
+ },
+ "sponge": {
+  "dossier": "Sponge",
+  "articles": [
+   "Éponges",
+   "Liquide vaisselle",
+   "Tablettes lave-vaisselle"
+  ],
+  "famille": "maison"
+ },
+ "lotion_bottle": {
+  "dossier": "Lotion bottle",
+  "articles": [
+   "Déodorant",
+   "Shampoing"
+  ],
+  "famille": "maison"
+ },
+ "toothbrush": {
+  "dossier": "Toothbrush",
+  "articles": [
+   "Dentifrice",
+   "Brosse à dents"
+  ],
+  "famille": "maison"
+ },
+ "razor": {
+  "dossier": "Razor",
+  "articles": [
+   "Rasoirs"
+  ],
+  "famille": "maison"
+ },
+ "wastebasket": {
+  "dossier": "Wastebasket",
+  "articles": [
+   "Sacs poubelle"
+  ],
+  "famille": "maison"
+ },
+ "battery": {
+  "dossier": "Battery",
+  "articles": [
+   "Piles"
+  ],
+  "famille": "maison"
+ },
+ "light_bulb": {
+  "dossier": "Light bulb",
+  "articles": [
+   "Ampoules"
+  ],
+  "famille": "maison"
+ },
+ "cat_face": {
+  "dossier": "Cat face",
+  "articles": [
+   "Croquettes chat"
+  ],
+  "famille": "maison"
+ },
+ "dog_face": {
+  "dossier": "Dog face",
+  "articles": [
+   "Croquettes chien"
+  ],
+  "famille": "maison"
+ },
+ "package": {
+  "dossier": "Package",
+  "articles": [
+   "Serviettes hygiéniques",
+   "Tampons"
+  ],
+  "famille": "maison"
+ },
+ "shopping_cart": {
+  "dossier": "Shopping cart",
+  "articles": [],
+  "rayon": "défaut",
+  "famille": "maison"
+ },
+ "curry_rice": {
+  "dossier": "Curry rice",
+  "articles": [
+   "Curry en poudre"
+  ],
+  "usage": "plats (menu)",
+  "famille": "nourriture"
+ },
+ "taco": {
+  "dossier": "Taco",
+  "articles": [],
+  "usage": "plats (menu)",
+  "famille": "nourriture"
+ },
+ "shallow_pan_of_food": {
+  "dossier": "Shallow pan of food",
+  "articles": [],
+  "usage": "plats (menu)",
+  "famille": "nourriture"
+ },
+ "pot_of_food": {
+  "dossier": "Pot of food",
+  "articles": [],
+  "usage": "plats (menu)",
+  "famille": "nourriture"
+ },
+ "house": {
+  "dossier": "House",
+  "articles": [],
+  "usage": "foyer",
+  "famille": "maison"
+ },
+ "amphora": {
+  "dossier": "Amphora",
+  "articles": [
+   "Vinaigre balsamique",
+   "Huile de tournesol"
+  ],
+  "famille": "nourriture"
+ },
+ "baby_bottle": {
+  "dossier": "Baby bottle",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "bagel": {
+  "dossier": "Bagel",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "baguette_bread": {
+  "dossier": "Baguette bread",
+  "articles": [
+   "Pain"
+  ],
+  "famille": "nourriture"
+ },
+ "bento_box": {
+  "dossier": "Bento box",
+  "articles": [
+   "Tofu"
+  ],
+  "famille": "nourriture"
+ },
+ "beverage_box": {
+  "dossier": "Beverage box",
+  "articles": [
+   "Jus de pomme"
+  ],
+  "famille": "nourriture"
+ },
+ "birthday_cake": {
+  "dossier": "Birthday cake",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "blueberries": {
+  "dossier": "Blueberries",
+  "articles": [
+   "Framboises",
+   "Fruits rouges surgelés"
+  ],
+  "famille": "nourriture"
+ },
+ "bottle_with_popping_cork": {
+  "dossier": "Bottle with popping cork",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "bowl_with_spoon": {
+  "dossier": "Bowl with spoon",
+  "articles": [
+   "Céréales",
+   "Muesli",
+   "Flocons d'avoine"
+  ],
+  "famille": "nourriture"
+ },
+ "brown_mushroom": {
+  "dossier": "Brown mushroom",
+  "articles": [
+   "Champignons"
+  ],
+  "famille": "nourriture"
+ },
+ "bubble_tea": {
+  "dossier": "Bubble tea",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "burrito": {
+  "dossier": "Burrito",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "candy": {
+  "dossier": "Candy",
+  "articles": [
+   "Sucre"
+  ],
+  "famille": "nourriture"
+ },
+ "chestnut": {
+  "dossier": "Chestnut",
+  "articles": [
+   "Noix"
+  ],
+  "famille": "nourriture"
+ },
+ "chopsticks": {
+  "dossier": "Chopsticks",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "clinking_beer_mugs": {
+  "dossier": "Clinking beer mugs",
+  "articles": [
+   "Cidre"
+  ],
+  "famille": "nourriture"
+ },
+ "clinking_glasses": {
+  "dossier": "Clinking glasses",
+  "articles": [
+   "Vin blanc"
+  ],
+  "famille": "nourriture"
+ },
+ "cocktail_glass": {
+  "dossier": "Cocktail glass",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "cooking": {
+  "dossier": "Cooking",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "crab": {
+  "dossier": "Crab",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "croissant": {
+  "dossier": "Croissant",
+  "articles": [
+   "Pâte feuilletée"
+  ],
+  "famille": "nourriture"
+ },
+ "cupcake": {
+  "dossier": "Cupcake",
+  "articles": [
+   "Sucre glace"
+  ],
+  "famille": "nourriture"
+ },
+ "custard": {
+  "dossier": "Custard",
+  "articles": [
+   "Compotes",
+   "Mascarpone",
+   "Ricotta",
+   "Petits-suisses",
+   "Fromage blanc",
+   "Skyr",
+   "Yaourts grecs",
+   "Yaourts nature"
+  ],
+  "famille": "nourriture"
+ },
+ "dango": {
+  "dossier": "Dango",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "doughnut": {
+  "dossier": "Doughnut",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "dumpling": {
+  "dossier": "Dumpling",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "falafel": {
+  "dossier": "Falafel",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "fish_cake_with_swirl": {
+  "dossier": "Fish cake with swirl",
+  "articles": [
+   "Poisson pané"
+  ],
+  "famille": "nourriture"
+ },
+ "fondue": {
+  "dossier": "Fondue",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "fork_and_knife": {
+  "dossier": "Fork and knife",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "fork_and_knife_with_plate": {
+  "dossier": "Fork and knife with plate",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "fortune_cookie": {
+  "dossier": "Fortune cookie",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "fried_shrimp": {
+  "dossier": "Fried shrimp",
+  "articles": [
+   "Crevettes"
+  ],
+  "famille": "nourriture"
+ },
+ "green_apple": {
+  "dossier": "Green apple",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "hamburger": {
+  "dossier": "Hamburger",
+  "articles": [
+   "Steak haché"
+  ],
+  "famille": "nourriture"
+ },
+ "hot_dog": {
+  "dossier": "Hot dog",
+  "articles": [
+   "Saucisses",
+   "Merguez"
+  ],
+  "famille": "nourriture"
+ },
+ "hot_pepper": {
+  "dossier": "Hot pepper",
+  "articles": [
+   "Paprika"
+  ],
+  "famille": "nourriture"
+ },
+ "kitchen_knife": {
+  "dossier": "Kitchen knife",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "lime": {
+  "dossier": "Lime",
+  "articles": [
+   "Citron vert"
+  ],
+  "famille": "nourriture"
+ },
+ "lobster": {
+  "dossier": "Lobster",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "lollipop": {
+  "dossier": "Lollipop",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "mate": {
+  "dossier": "Mate",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "meat_on_bone": {
+  "dossier": "Meat on bone",
+  "articles": [
+   "Côtes de porc"
+  ],
+  "famille": "nourriture"
+ },
+ "moon_cake": {
+  "dossier": "Moon cake",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "oden": {
+  "dossier": "Oden",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "pancakes": {
+  "dossier": "Pancakes",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "pie": {
+  "dossier": "Pie",
+  "articles": [
+   "Pâte brisée"
+  ],
+  "famille": "nourriture"
+ },
+ "popcorn": {
+  "dossier": "Popcorn",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "pouring_liquid": {
+  "dossier": "Pouring liquid",
+  "articles": [
+   "Eau",
+   "Crème liquide"
+  ],
+  "famille": "nourriture"
+ },
+ "pretzel": {
+  "dossier": "Pretzel",
+  "articles": [
+   "Gâteaux apéro"
+  ],
+  "famille": "nourriture"
+ },
+ "rice_ball": {
+  "dossier": "Rice ball",
+  "articles": [
+   "Riz à risotto"
+  ],
+  "famille": "nourriture"
+ },
+ "rice_cracker": {
+  "dossier": "Rice cracker",
+  "articles": [
+   "Biscottes"
+  ],
+  "famille": "nourriture"
+ },
+ "sake": {
+  "dossier": "Sake",
+  "articles": [
+   "Sauce soja"
+  ],
+  "famille": "nourriture"
+ },
+ "sandwich": {
+  "dossier": "Sandwich",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "shaved_ice": {
+  "dossier": "Shaved ice",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "shortcake": {
+  "dossier": "Shortcake",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "soft_ice_cream": {
+  "dossier": "Soft ice cream",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "spoon": {
+  "dossier": "Spoon",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "squid": {
+  "dossier": "Squid",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "steaming_bowl": {
+  "dossier": "Steaming bowl",
+  "articles": [
+   "Bouillon cube"
+  ],
+  "famille": "nourriture"
+ },
+ "stuffed_flatbread": {
+  "dossier": "Stuffed flatbread",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "sushi": {
+  "dossier": "Sushi",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "takeout_box": {
+  "dossier": "Takeout box",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "tamale": {
+  "dossier": "Tamale",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "teapot": {
+  "dossier": "Teapot",
+  "articles": [
+   "Thé"
+  ],
+  "famille": "nourriture"
+ },
+ "tropical_drink": {
+  "dossier": "Tropical drink",
+  "articles": [
+   "Sirop"
+  ],
+  "famille": "nourriture"
+ },
+ "tumbler_glass": {
+  "dossier": "Tumbler glass",
+  "articles": [
+   "Eau gazeuse"
+  ],
+  "famille": "nourriture"
+ },
+ "waffle": {
+  "dossier": "Waffle",
+  "articles": [],
+  "famille": "nourriture"
+ },
+ "adhesive_bandage": {
+  "dossier": "Adhesive bandage",
+  "articles": [
+   "Coton"
+  ],
+  "famille": "maison"
+ },
+ "baby_chick": {
+  "dossier": "Baby chick",
+  "articles": [],
+  "famille": "maison"
+ },
+ "balloon": {
+  "dossier": "Balloon",
+  "articles": [],
+  "famille": "maison"
+ },
+ "basket": {
+  "dossier": "Basket",
+  "articles": [
+   "Litière"
+  ],
+  "famille": "maison"
+ },
+ "bathtub": {
+  "dossier": "Bathtub",
+  "articles": [
+   "Gel douche"
+  ],
+  "famille": "maison"
+ },
+ "bear": {
+  "dossier": "Bear",
+  "articles": [],
+  "famille": "maison"
+ },
+ "bed": {
+  "dossier": "Bed",
+  "articles": [],
+  "famille": "maison"
+ },
+ "bell": {
+  "dossier": "Bell",
+  "articles": [],
+  "famille": "maison"
+ },
+ "bird": {
+  "dossier": "Bird",
+  "articles": [],
+  "famille": "maison"
+ },
+ "blossom": {
+  "dossier": "Blossom",
+  "articles": [],
+  "famille": "maison"
+ },
+ "bone": {
+  "dossier": "Bone",
+  "articles": [],
+  "famille": "maison"
+ },
+ "bouquet": {
+  "dossier": "Bouquet",
+  "articles": [],
+  "famille": "maison"
+ },
+ "broom": {
+  "dossier": "Broom",
+  "articles": [
+   "Produit multi-surfaces"
+  ],
+  "famille": "maison"
+ },
+ "bucket": {
+  "dossier": "Bucket",
+  "articles": [
+   "Javel"
+  ],
+  "famille": "maison"
+ },
+ "candle": {
+  "dossier": "Candle",
+  "articles": [],
+  "famille": "maison"
+ },
+ "chains": {
+  "dossier": "Chains",
+  "articles": [],
+  "famille": "maison"
+ },
+ "chair": {
+  "dossier": "Chair",
+  "articles": [],
+  "famille": "maison"
+ },
+ "cherry_blossom": {
+  "dossier": "Cherry blossom",
+  "articles": [],
+  "famille": "maison"
+ },
+ "chicken": {
+  "dossier": "Chicken",
+  "articles": [],
+  "famille": "maison"
+ },
+ "couch_and_lamp": {
+  "dossier": "Couch and lamp",
+  "articles": [],
+  "famille": "maison"
+ },
+ "cow": {
+  "dossier": "Cow",
+  "articles": [],
+  "famille": "maison"
+ },
+ "door": {
+  "dossier": "Door",
+  "articles": [],
+  "famille": "maison"
+ },
+ "drop_of_blood": {
+  "dossier": "Drop of blood",
+  "articles": [],
+  "famille": "maison"
+ },
+ "feather": {
+  "dossier": "Feather",
+  "articles": [],
+  "famille": "maison"
+ },
+ "fire": {
+  "dossier": "Fire",
+  "articles": [],
+  "famille": "maison"
+ },
+ "fire_extinguisher": {
+  "dossier": "Fire extinguisher",
+  "articles": [],
+  "famille": "maison"
+ },
+ "flashlight": {
+  "dossier": "Flashlight",
+  "articles": [],
+  "famille": "maison"
+ },
+ "four_leaf_clover": {
+  "dossier": "Four leaf clover",
+  "articles": [],
+  "famille": "maison"
+ },
+ "goat": {
+  "dossier": "Goat",
+  "articles": [],
+  "famille": "maison"
+ },
+ "hammer_and_wrench": {
+  "dossier": "Hammer and wrench",
+  "articles": [],
+  "famille": "maison"
+ },
+ "hamster": {
+  "dossier": "Hamster",
+  "articles": [],
+  "famille": "maison"
+ },
+ "hibiscus": {
+  "dossier": "Hibiscus",
+  "articles": [],
+  "famille": "maison"
+ },
+ "honeybee": {
+  "dossier": "Honeybee",
+  "articles": [],
+  "famille": "maison"
+ },
+ "hook": {
+  "dossier": "Hook",
+  "articles": [],
+  "famille": "maison"
+ },
+ "ladder": {
+  "dossier": "Ladder",
+  "articles": [],
+  "famille": "maison"
+ },
+ "lipstick": {
+  "dossier": "Lipstick",
+  "articles": [],
+  "famille": "maison"
+ },
+ "magnifying_glass_tilted_left": {
+  "dossier": "Magnifying glass tilted left",
+  "articles": [],
+  "famille": "maison"
+ },
+ "mouse": {
+  "dossier": "Mouse",
+  "articles": [],
+  "famille": "maison"
+ },
+ "mouse_trap": {
+  "dossier": "Mouse trap",
+  "articles": [],
+  "famille": "maison"
+ },
+ "nazar_amulet": {
+  "dossier": "Nazar amulet",
+  "articles": [],
+  "famille": "maison"
+ },
+ "nut_and_bolt": {
+  "dossier": "Nut and bolt",
+  "articles": [],
+  "famille": "maison"
+ },
+ "paperclip": {
+  "dossier": "Paperclip",
+  "articles": [],
+  "famille": "maison"
+ },
+ "party_popper": {
+  "dossier": "Party popper",
+  "articles": [],
+  "famille": "maison"
+ },
+ "paw_prints": {
+  "dossier": "Paw prints",
+  "articles": [],
+  "famille": "maison"
+ },
+ "petri_dish": {
+  "dossier": "Petri dish",
+  "articles": [],
+  "famille": "maison"
+ },
+ "pig": {
+  "dossier": "Pig",
+  "articles": [],
+  "famille": "maison"
+ },
+ "pill": {
+  "dossier": "Pill",
+  "articles": [],
+  "famille": "maison"
+ },
+ "plunger": {
+  "dossier": "Plunger",
+  "articles": [],
+  "famille": "maison"
+ },
+ "potted_plant": {
+  "dossier": "Potted plant",
+  "articles": [],
+  "famille": "maison"
+ },
+ "pushpin": {
+  "dossier": "Pushpin",
+  "articles": [],
+  "famille": "maison"
+ },
+ "rabbit": {
+  "dossier": "Rabbit",
+  "articles": [],
+  "famille": "maison"
+ },
+ "receipt": {
+  "dossier": "Receipt",
+  "articles": [],
+  "famille": "maison"
+ },
+ "ring": {
+  "dossier": "Ring",
+  "articles": [],
+  "famille": "maison"
+ },
+ "rose": {
+  "dossier": "Rose",
+  "articles": [],
+  "famille": "maison"
+ },
+ "safety_pin": {
+  "dossier": "Safety pin",
+  "articles": [],
+  "famille": "maison"
+ },
+ "scissors": {
+  "dossier": "Scissors",
+  "articles": [],
+  "famille": "maison"
+ },
+ "screwdriver": {
+  "dossier": "Screwdriver",
+  "articles": [],
+  "famille": "maison"
+ },
+ "seedling": {
+  "dossier": "Seedling",
+  "articles": [],
+  "famille": "maison"
+ },
+ "sewing_needle": {
+  "dossier": "Sewing needle",
+  "articles": [],
+  "famille": "maison"
+ },
+ "shopping_bags": {
+  "dossier": "Shopping bags",
+  "articles": [],
+  "famille": "maison"
+ },
+ "shower": {
+  "dossier": "Shower",
+  "articles": [],
+  "famille": "maison"
+ },
+ "stethoscope": {
+  "dossier": "Stethoscope",
+  "articles": [],
+  "famille": "maison"
+ },
+ "sun": {
+  "dossier": "Sun",
+  "articles": [],
+  "famille": "maison"
+ },
+ "sunflower": {
+  "dossier": "Sunflower",
+  "articles": [],
+  "famille": "maison"
+ },
+ "syringe": {
+  "dossier": "Syringe",
+  "articles": [],
+  "famille": "maison"
+ },
+ "teddy_bear": {
+  "dossier": "Teddy bear",
+  "articles": [],
+  "famille": "maison"
+ },
+ "test_tube": {
+  "dossier": "Test tube",
+  "articles": [],
+  "famille": "maison"
+ },
+ "thermometer": {
+  "dossier": "Thermometer",
+  "articles": [],
+  "famille": "maison"
+ },
+ "thread": {
+  "dossier": "Thread",
+  "articles": [],
+  "famille": "maison"
+ },
+ "toilet": {
+  "dossier": "Toilet",
+  "articles": [],
+  "famille": "maison"
+ },
+ "toolbox": {
+  "dossier": "Toolbox",
+  "articles": [],
+  "famille": "maison"
+ },
+ "tropical_fish": {
+  "dossier": "Tropical fish",
+  "articles": [],
+  "famille": "maison"
+ },
+ "tulip": {
+  "dossier": "Tulip",
+  "articles": [],
+  "famille": "maison"
+ },
+ "turtle": {
+  "dossier": "Turtle",
+  "articles": [],
+  "famille": "maison"
+ },
+ "window": {
+  "dossier": "Window",
+  "articles": [],
+  "famille": "maison"
+ },
+ "wrapped_gift": {
+  "dossier": "Wrapped gift",
+  "articles": [],
+  "famille": "maison"
+ },
+ "wrench": {
+  "dossier": "Wrench",
+  "articles": [],
+  "famille": "maison"
+ },
+ "_rayons": {
+  "Fruits et légumes": "green_salad",
+  "Crèmerie": "cheese_wedge",
+  "Boucherie et poisson": "cut_of_meat",
+  "Épicerie": "canned_food",
+  "Boissons": "cup_with_straw",
+  "Surgelés": "ice",
+  "Hygiène et maison": "soap",
+  "défaut": "shopping_cart"
+ }
+}
