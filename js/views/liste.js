@@ -69,12 +69,12 @@ export function listeView() {
 
 function terminer() {
   const n = state.articles.filter(a => a.coche).length;
-  confirmSheet({ title: "Terminer les courses ?", message: `Les ${n} articles du panier sortent de la liste. Le menu de la semaine reste.`, confirmLabel: "Terminer", cancelLabel: "Pas encore",
+  confirmSheet({ title: "Terminer les courses ?", message: `${n > 1 ? `Les ${n} articles du panier sortent` : "L'article du panier sort"} de la liste. Le menu de la semaine reste.`, confirmLabel: "Terminer", cancelLabel: "Pas encore",
     onConfirm: async () => { await articles.viderPanier(); toast("Courses terminées", { tone: "succes" }); } });
 }
 function viderPanier() {
   const n = state.articles.filter(a => a.coche).length;
-  confirmSheet({ title: "Vider le panier ?", message: `Les ${n} articles cochés sortent de la liste. Pour les remettre à prendre, décoche-les plutôt.`, confirmLabel: "Vider le panier", cancelLabel: "Annuler", destructive: true,
+  confirmSheet({ title: "Vider le panier ?", message: `${n > 1 ? `Les ${n} articles cochés sortent` : "L'article coché sort"} de la liste. Pour ${n > 1 ? "les" : "le"} remettre à prendre, ${n > 1 ? "décoche-les" : "décoche-le"} plutôt.`, confirmLabel: "Vider le panier", cancelLabel: "Annuler", destructive: true,
     onConfirm: async () => { await articles.viderPanier(); toast("Panier vidé", { tone: "succes" }); } });
 }
 
