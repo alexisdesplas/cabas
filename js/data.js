@@ -113,6 +113,17 @@ const demo = {
 };
 
 // ———————————————————————————————————————————— Supabase
+// La base est en anglais (règle du 02/11/2026) ; l'état de l'app garde ses noms. On traduit à la frontière, ici seulement.
+const COLONNES = {
+  households: { nom: "name", code: "invite_code", code_expire_le: "code_expires_at", rayons: "aisles", habituels: "frequent_items", achats: "recent_purchases", cree_par: "created_by" },
+  members: { foyer_id: "household_id", prenom: "first_name" },
+  items: { foyer_id: "household_id", nom: "name", quantite: "quantity", rayon: "aisle", coche: "is_checked", ajoute_par: "added_by" },
+  meal_plans: { foyer_id: "household_id", semaine: "week_start", demande: "request", repas: "meals", ajoute: "added_to_list" }
+};
+const INVERSE = Object.fromEntries(Object.entries(COLONNES).map(([t, m]) => [t, Object.fromEntries(Object.entries(m).map(([fr, en]) => [en, fr]))]));
+const versBase = (table, o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [COLONNES[table][k] || k, v]));
+const depuisBase = (table, o) => o && Object.fromEntries(Object.entries(o).map(([k, v]) => [INVERSE[table][k] || k, v]));
+
 const sb = {
   client: null, canal: null, file: [],
   async init() {
@@ -129,30 +140,33 @@ const sb = {
   },
   async charger() {
     if (!state.user) { Object.assign(state, { membre: null, foyer: null, membres: [], articles: [], menu: null, pret: true }); this.canal?.unsubscribe(); this.canal = null; notify(); return; }
-    const { data: membre } = await this.client.from("membres").select("*").eq("user_id", state.user.id).maybeSingle();
-    state.membre = membre || { user_id: state.user.id, prenom: "", foyer_id: null };
+    const { data: membre } = await this.client.from("members").select("*").eq("user_id", state.user.id).maybeSingle();
+    state.membre = depuisBase("members", membre) || { user_id: state.user.id, prenom: "", foyer_id: null };
     if (!state.membre.foyer_id) { Object.assign(state, { foyer: null, membres: [], articles: [], menu: null, pret: true }); notify(); return; }
+    const fid = state.membre.foyer_id;
     const [{ data: foyer }, { data: membres }, { data: articles }, { data: menus }] = await Promise.all([
-      this.client.from("foyers").select("*").eq("id", state.membre.foyer_id).single(),
-      this.client.from("membres").select("user_id, prenom, created_at").eq("foyer_id", state.membre.foyer_id).order("created_at"),
-      this.client.from("articles").select("*").eq("foyer_id", state.membre.foyer_id).order("created_at"),
-      this.client.from("menus").select("*").eq("foyer_id", state.membre.foyer_id).order("semaine", { ascending: false }).limit(1)
+      this.client.from("households").select("*").eq("id", fid).single(),
+      this.client.from("members").select("user_id, first_name, created_at").eq("household_id", fid).order("created_at"),
+      this.client.from("items").select("*").eq("household_id", fid).order("created_at"),
+      this.client.from("meal_plans").select("*").eq("household_id", fid).order("week_start", { ascending: false }).limit(1)
     ]);
-    state.foyer = foyer; state.membres = membres || []; state.articles = articles || []; state.menu = menus?.[0] || null; state.majLe = Date.now(); state.pret = true;
+    state.foyer = depuisBase("households", foyer); state.membres = (membres || []).map(m => depuisBase("members", m)); state.articles = (articles || []).map(a => depuisBase("items", a));
+    state.menu = depuisBase("meal_plans", menus?.[0]) || null; state.majLe = Date.now(); state.pret = true;
     this.ecouter(); notify();
   },
   ecouter() {
     if (this.canal) return;
     const f = state.membre.foyer_id;
-    this.canal = this.client.channel("foyer-" + f)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "articles", filter: `foyer_id=eq.${f}` }, p => {
-        if (p.new.ajoute_par && p.new.ajoute_par !== state.user.id) state.activite = { texte: `${prenomDe(p.new.ajoute_par)} vient d'ajouter ${p.new.nom} en ${p.new.rayon}.`, t: Date.now() };
+    this.canal = this.client.channel("household-" + f)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: `household_id=eq.${f}` }, p => {
+        const a = depuisBase("items", p.new);
+        if (a.ajoute_par && a.ajoute_par !== state.user.id) state.activite = { texte: `${prenomDe(a.ajoute_par)} vient d'ajouter ${a.nom} en ${a.rayon}.`, t: Date.now() };
         this.charger();
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "articles", filter: `foyer_id=eq.${f}` }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "menus", filter: `foyer_id=eq.${f}` }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "membres" }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "foyers", filter: `id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `household_id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "meal_plans", filter: `household_id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "members" }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "households", filter: `id=eq.${f}` }, () => this.charger())
       .subscribe();
   },
   // Hors ligne : on applique localement, on garde l'ordre à envoyer, on rejoue au retour du réseau.
@@ -168,7 +182,7 @@ const sb = {
   },
   erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; if (/seul le créateur|quitte le foyer|pas dans le foyer/i.test(m)) return m.charAt(0).toUpperCase() + m.slice(1) + "."; if (/rate limit/i.test(m)) return "Trop d'e-mails envoyés : Supabase en limite 2 par heure. Réessaie dans une heure, ou cherche le précédent dans les indésirables."; return m || "Erreur inattendue."; },
   async signUp(prenom, email, mdp) {
-    const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { prenom }, emailRedirectTo: location.origin + location.pathname } });
+    const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { first_name: prenom }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw new Error(this.erreur(error));
     return { aValider: !data.session };
   },
@@ -178,34 +192,34 @@ const sb = {
   async resetPassword(email) { const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (error) throw new Error(this.erreur(error)); },
   async updatePassword(mdp) { const { error } = await this.client.auth.updateUser({ password: mdp }); if (error) throw new Error(this.erreur(error)); },
   async rpc(nom, args) { const { data, error } = await this.client.rpc(nom, args); if (error) throw new Error(this.erreur(error)); return data; },
-  async creerFoyer() { await this.rpc("creer_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async rejoindreFoyer(code) { await this.rpc("rejoindre_foyer", { p_code: code }); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async quitterFoyer() { await this.rpc("quitter_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async retirerMembre(id) { await this.rpc("retirer_membre", { p_user: id }); await this.charger(); },
-  async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
-  async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
-  async saveHabituels(habituels) { await this.envoyer(() => this.client.from("foyers").update({ habituels }).eq("id", state.foyer.id)); },
-  async saveAchats(achats) { await this.envoyer(() => this.client.from("foyers").update({ achats }).eq("id", state.foyer.id)); },
+  async creerFoyer() { await this.rpc("create_household"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async rejoindreFoyer(code) { await this.rpc("join_household", { p_code: code }); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async quitterFoyer() { await this.rpc("leave_household"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async retirerMembre(id) { await this.rpc("remove_member", { p_user_id: id }); await this.charger(); },
+  async renouvelerCode() { await this.rpc("renew_invite_code"); await this.charger(); },
+  async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("households").update({ aisles: rayons }).eq("id", state.foyer.id)); },
+  async saveHabituels(habituels) { await this.envoyer(() => this.client.from("households").update({ frequent_items: habituels }).eq("id", state.foyer.id)); },
+  async saveAchats(achats) { await this.envoyer(() => this.client.from("households").update({ recent_purchases: achats }).eq("id", state.foyer.id)); },
   async addArticle(a) {
     const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
-    await this.envoyer(() => this.client.from("articles").insert(row));
+    await this.envoyer(() => this.client.from("items").insert(versBase("items", row)));
     return row.id;
   },
   async updateArticle(id, patch) {
     Object.assign(state.articles.find(a => a.id === id) || {}, patch); notify();
-    await this.envoyer(() => this.client.from("articles").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id));
+    await this.envoyer(() => this.client.from("items").update(versBase("items", { ...patch, updated_at: new Date().toISOString() })).eq("id", id));
   },
   async removeArticles(ids) {
     state.articles = state.articles.filter(a => !ids.includes(a.id)); notify();
-    await this.envoyer(() => this.client.from("articles").delete().in("id", ids));
+    await this.envoyer(() => this.client.from("items").delete().in("id", ids));
   },
   async saveMenu(menu) {
-    const { data, error } = await this.client.from("menus").insert({ foyer_id: state.foyer.id, ...menu }).select().single();
+    const { data, error } = await this.client.from("meal_plans").insert(versBase("meal_plans", { foyer_id: state.foyer.id, ...menu })).select().single();
     if (error) throw new Error(error.message);
-    state.menu = data; notify(); return data;
+    state.menu = depuisBase("meal_plans", data); notify(); return state.menu;
   },
-  async updateMenu(patch) { Object.assign(state.menu, patch); notify(); await this.envoyer(() => this.client.from("menus").update(patch).eq("id", state.menu.id)); },
+  async updateMenu(patch) { Object.assign(state.menu, patch); notify(); await this.envoyer(() => this.client.from("meal_plans").update(versBase("meal_plans", patch)).eq("id", state.menu.id)); },
   async demanderMenu(demande) {
     const { data: { session } } = await this.client.auth.getSession();
     const r = await fetch("/api/repas", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify(demande) });
