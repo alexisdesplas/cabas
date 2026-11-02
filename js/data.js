@@ -93,7 +93,7 @@ const demo = {
   async demanderMenu(demande) {
     await new Promise(r => setTimeout(r, 2500));
     if (demande.eviter?.toLowerCase().includes("panne")) throw new Error("Claude n'a pas répondu");
-    const ex = (jour, plat, temps, ings, etapes) => ({ jour, moment: "diner", plat, temps_min: temps, ingredients: ings.map(([nom, quantite, rayon, deja_la]) => ({ nom, quantite, rayon, deja_la: !!deja_la })), etapes });
+    const ex = (jour, plat, temps, ings, etapes) => ({ jour, plat, temps_min: temps, ingredients: ings.map(([nom, quantite, rayon, deja_la]) => ({ nom, quantite, rayon, deja_la: !!deja_la })), etapes });
     const tous = [
       ex("lundi", "Pâtes complètes au pesto et tomates cerises", 15, [["Pâtes complètes", "500 g", "Épicerie"], ["Pesto", "1 pot", "Épicerie"], ["Tomates cerises", "250 g", "Fruits et légumes"], ["Parmesan", "100 g", "Crèmerie"]], ["Cuire les pâtes 9 min.", "Couper les tomates cerises en deux.", "Mélanger pâtes, pesto et tomates, servir avec le parmesan."]),
       ex("mardi", "Gratin de courgettes au comté", 40, [["Courgettes", "3", "Fruits et légumes"], ["Comté", "200 g", "Crèmerie"], ["Crème fraîche", "20 cl", "Crèmerie"], ["Œufs", "", "Épicerie", true]], ["Émincer les courgettes, les faire revenir 10 min.", "Battre œufs et crème, ajouter le comté râpé.", "Verser sur les courgettes, 25 min au four à 200 °C."]),
@@ -104,7 +104,7 @@ const demo = {
       ex("dimanche", "Risotto aux champignons", 35, [["Riz à risotto", "300 g", "Épicerie"], ["Champignons", "300 g", "Fruits et légumes"], ["Parmesan", "80 g", "Crèmerie"]], ["Faire revenir les champignons.", "Nacrer le riz, mouiller louche par louche 18 min.", "Finir avec le parmesan."])
     ];
     if (demande.remplacer) return { repas: [tous.find(r => r.plat !== demande.remplacer.plat && !demande.autres?.includes(r.plat)) || tous[5]] };
-    const n = Math.min(7, (demande.diners || 0) + (demande.dejeuners || 0));
+    const n = Math.min(7, Number(demande.repas) || 0);
     return { repas: tous.slice(0, n) };
   },
   reprendre() {}
