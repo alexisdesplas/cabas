@@ -19,6 +19,8 @@
 - **Avatars colorés** : une teinte par membre dans l'ordre d'arrivée (indigo, vert, ambre, rose).
 - **Feuilles flottantes** détachées des bords ; **toasts clairs** fixés en bas, avec « Annuler ».
 - **Gestes** : glisser à droite = dans le panier, à gauche = retirer ; tap = cocher ; appui long = modifier.
+- **Quantité** (écran Modifier) : compteur moins / valeur / plus, puces d'unité (g, kg, pièce) ; le pas suit l'unité, appui long pour taper la valeur.
+- **Tuiles posées sur la page** (accroches, aperçu, plat, états vide/erreur) : sans fond, l'illustration seule ; le fond page des tuiles ne sert que dans une carte ou une ligne.
 
 ## Écrans produits
 
