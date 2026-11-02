@@ -132,8 +132,9 @@ button.row:active { background: var(--fond-discret); }
 
 /* Champ d'ajout rapide (proposition locale) */
 .add { display: flex; align-items: center; gap: var(--spacing-8); height: 52px; padding: 0 var(--spacing-4) 0 var(--spacing-16); background: var(--fond-carte); border: 1px solid var(--bord-base); border-radius: var(--radius-md); }
-.add input { flex: 1; min-width: 0; border: 0; background: none; padding: 0; font: 400 14px/20px var(--font); color: var(--texte-fort); }
-.add input:focus { outline: none; }
+.add input, .add input.input { flex: 1; min-width: 0; height: auto; border: 0; border-radius: 0; background: none; padding: 0; font: 400 16px/24px var(--font); color: var(--texte-fort); box-shadow: none; }
+.add input:focus, .add input.input:focus { outline: none; border: 0; box-shadow: none; }
+.add:focus-within { border-color: var(--accent-base); box-shadow: 0 0 0 1px var(--accent-base); }
 .add input::placeholder { color: var(--texte-discret); }
 .add button { width: 44px; height: 44px; border-radius: var(--radius-md); border: 0; background: var(--accent-base); color: var(--texte-inverse); display: grid; place-items: center; flex: none; }
 .add button svg { width: 20px; height: 20px; }

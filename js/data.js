@@ -24,6 +24,8 @@ export const subscribe = fn => { listeners.add(fn); return () => listeners.delet
 export const notify = () => listeners.forEach(fn => fn());
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+// UUID v4 : crypto.randomUUID n'existe qu'en contexte sécurisé (HTTPS ou localhost). Sur http://192.168.x.x il est absent, et l'ajout plantait en silence.
+export const uuid = () => crypto.randomUUID?.() ?? (() => { const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80; const h = [...b].map(x => x.toString(16).padStart(2, "0")).join(""); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; })();
 export const prenomDe = id => (id === state.user?.id ? "toi" : state.membres.find(m => m.user_id === id)?.prenom || "l'autre");
 export const lundi = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
 export const dateKey = d => new Date(d).toLocaleDateString("sv-SE");
@@ -179,7 +181,7 @@ const sb = {
   async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
   async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
   async addArticle(a) {
-    const row = { id: crypto.randomUUID(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
+    const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
     await this.envoyer(() => this.client.from("articles").insert(row));
   },
