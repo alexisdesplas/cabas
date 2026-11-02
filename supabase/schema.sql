@@ -1,184 +1,159 @@
--- Cabas — schéma Supabase. À exécuter une fois dans l'éditeur SQL du projet.
--- Un foyer regroupe des membres (un par compte) ; articles et menus appartiennent au foyer.
+-- Cabas — Supabase schema (fresh install). Run once in the project's SQL editor.
+-- Names are in English (rule of 02/11/2026); text shown to users stays in French.
+-- A household groups members (one per account); items and meal plans belong to the household.
+-- Existing project created with the French names: run supabase/migrations/2026-11-02-english-names.sql instead.
 
 create extension if not exists pgcrypto;
 
-create table if not exists public.foyers (
+create table if not exists public.households (
   id uuid primary key default gen_random_uuid(),
-  nom text not null default 'Chez nous',
-  code text not null unique,
-  code_expire_le timestamptz not null default now() + interval '7 days',
-  rayons text[] not null default array['Fruits et légumes','Crèmerie','Boucherie et poisson','Épicerie','Boissons','Surgelés','Hygiène et maison'],
+  name text not null default 'Chez nous',
+  invite_code text not null unique,
+  code_expires_at timestamptz not null default now() + interval '7 days',
+  aisles text[] not null default array['Fruits et légumes','Crèmerie','Boucherie et poisson','Épicerie','Boissons','Surgelés','Hygiène et maison'],
+  frequent_items jsonb not null default '{}'::jsonb,    -- { "<normalized name>": { nom, rayon, n, le } }, updated on each manual add
+  recent_purchases jsonb not null default '{}'::jsonb,  -- { "<normalized name>": { nom, rayon, le } }, noted when the basket is emptied
+  created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
--- Habituels du foyer (02/11/2026) : { "<nom normalisé>": { nom, rayon, n, le } }, mis à jour par le client à chaque ajout manuel.
-alter table public.foyers add column if not exists habituels jsonb not null default '{}'::jsonb;
--- Achats récents (02/11/2026) : { "<nom normalisé>": { nom, rayon, le } }, notés quand le panier est vidé ; « déjà dans les placards » du formulaire Repas.
-alter table public.foyers add column if not exists achats jsonb not null default '{}'::jsonb;
 
-create table if not exists public.membres (
+create table if not exists public.members (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  foyer_id uuid references public.foyers(id) on delete set null,
-  prenom text not null default '',
+  household_id uuid references public.households(id) on delete set null,
+  first_name text not null default '',
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.articles (
+create table if not exists public.items (
   id uuid primary key default gen_random_uuid(),
-  foyer_id uuid not null references public.foyers(id) on delete cascade,
-  nom text not null,
-  quantite text not null default '',
-  rayon text not null default 'Épicerie',
-  coche boolean not null default false,
-  ajoute_par uuid references auth.users(id) on delete set null,
-  source text not null default '',          -- '' (à la main) ou le plat du menu qui l'a demandé
-  note text not null default '',            -- précision libre : « bien mûrs », « la marque bleue »
+  household_id uuid not null references public.households(id) on delete cascade,
+  name text not null,
+  quantity text not null default '',
+  aisle text not null default 'Épicerie',
+  is_checked boolean not null default false,
+  added_by uuid references auth.users(id) on delete set null,
+  source text not null default '',          -- '' (added by hand) or the meal that asked for it
+  note text not null default '',            -- free note: « bien mûrs », « la marque bleue »
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-alter table public.articles add column if not exists note text not null default '';
-create index if not exists articles_foyer on public.articles(foyer_id, coche, created_at);
+create index if not exists items_household_idx on public.items(household_id, is_checked, created_at);
 
-create table if not exists public.menus (
+create table if not exists public.meal_plans (
   id uuid primary key default gen_random_uuid(),
-  foyer_id uuid not null references public.foyers(id) on delete cascade,
-  semaine date not null,                    -- lundi de la semaine
-  demande jsonb not null,                   -- le formulaire envoyé à Claude
-  repas jsonb not null,                     -- la réponse de Claude
-  ajoute boolean not null default false,    -- les articles ont été ajoutés à la liste
+  household_id uuid not null references public.households(id) on delete cascade,
+  week_start date not null,                 -- Monday of the week
+  request jsonb not null,                   -- the form sent to Claude
+  meals jsonb not null,                     -- Claude's answer
+  added_to_list boolean not null default false,
   created_at timestamptz not null default now()
 );
-create index if not exists menus_foyer on public.menus(foyer_id, semaine desc);
+create index if not exists meal_plans_household_idx on public.meal_plans(household_id, week_start desc);
 
--- Un membre est créé à l'inscription, avec le prénom passé dans les métadonnées.
-create or replace function public.nouveau_membre() returns trigger language plpgsql security definer set search_path = public as $$
+-- A member row is created at sign-up, with the first name passed in the user metadata.
+create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.membres (user_id, prenom) values (new.id, coalesce(new.raw_user_meta_data->>'prenom', ''))
+  insert into public.members (user_id, first_name)
+  values (new.id, coalesce(new.raw_user_meta_data->>'first_name', new.raw_user_meta_data->>'prenom', ''))
   on conflict (user_id) do nothing;
   return new;
 end $$;
 drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users for each row execute function public.nouveau_membre();
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
 
--- Le foyer de la personne connectée (null si elle n'en a pas).
-create or replace function public.mon_foyer() returns uuid language sql stable security definer set search_path = public as $$
-  select foyer_id from public.membres where user_id = auth.uid()
+-- Household of the signed-in user (null if none).
+create or replace function public.my_household_id() returns uuid language sql stable security definer set search_path = public as $$
+  select household_id from public.members where user_id = auth.uid()
 $$;
 
--- Code d'invitation : 6 caractères sans O, 0, I, 1, écrit XXX-XXX.
-create or replace function public.nouveau_code() returns text language plpgsql as $$
+-- Invite code: 6 characters without O, 0, I, 1, written XXX-XXX.
+create or replace function public.generate_invite_code() returns text language plpgsql as $$
 declare alphabet text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; c text := ''; i int;
 begin
   for i in 1..6 loop c := c || substr(alphabet, 1 + floor(random() * length(alphabet))::int, 1); end loop;
   return substr(c, 1, 3) || '-' || substr(c, 4, 3);
 end $$;
 
-create or replace function public.creer_foyer() returns public.foyers language plpgsql security definer set search_path = public as $$
-declare f public.foyers;
+-- Error messages stay in French: the app shows them as they are.
+create or replace function public.create_household() returns public.households language plpgsql security definer set search_path = public as $$
+declare h public.households;
 begin
   if auth.uid() is null then raise exception 'non connecté'; end if;
-  insert into public.foyers (code) values (public.nouveau_code()) returning * into f;
-  update public.membres set foyer_id = f.id where user_id = auth.uid();
-  return f;
+  insert into public.households (invite_code, created_by) values (public.generate_invite_code(), auth.uid()) returning * into h;
+  update public.members set household_id = h.id where user_id = auth.uid();
+  return h;
 end $$;
 
-create or replace function public.rejoindre_foyer(p_code text) returns public.foyers language plpgsql security definer set search_path = public as $$
-declare f public.foyers;
+create or replace function public.join_household(p_code text) returns public.households language plpgsql security definer set search_path = public as $$
+declare h public.households;
 begin
   if auth.uid() is null then raise exception 'non connecté'; end if;
-  select * into f from public.foyers where upper(replace(code, '-', '')) = upper(replace(p_code, '-', '')) and code_expire_le > now();
-  if f.id is null then raise exception 'code inconnu ou expiré'; end if;
-  update public.membres set foyer_id = f.id where user_id = auth.uid();
-  return f;
+  select * into h from public.households where upper(replace(invite_code, '-', '')) = upper(replace(p_code, '-', '')) and code_expires_at > now();
+  if h.id is null then raise exception 'code inconnu ou expiré'; end if;
+  update public.members set household_id = h.id where user_id = auth.uid();
+  return h;
 end $$;
 
-create or replace function public.quitter_foyer() returns void language sql security definer set search_path = public as $$
-  update public.membres set foyer_id = null where user_id = auth.uid()
-$$;
-
-create or replace function public.renouveler_code() returns public.foyers language plpgsql security definer set search_path = public as $$
-declare f public.foyers;
+-- If the creator leaves, the oldest remaining member takes over.
+create or replace function public.leave_household() returns void language plpgsql security definer set search_path = public as $$
+declare hid uuid := public.my_household_id();
 begin
-  update public.foyers set code = public.nouveau_code(), code_expire_le = now() + interval '7 days' where id = public.mon_foyer() returning * into f;
-  return f;
+  update public.members set household_id = null where user_id = auth.uid();
+  update public.households set created_by = (select user_id from public.members where household_id = hid order by created_at limit 1)
+    where id = hid and created_by = auth.uid();
 end $$;
 
--- Règles d'accès : on ne voit que son foyer.
-alter table public.foyers enable row level security;
-alter table public.membres enable row level security;
-alter table public.articles enable row level security;
-alter table public.menus enable row level security;
+create or replace function public.renew_invite_code() returns public.households language plpgsql security definer set search_path = public as $$
+declare h public.households;
+begin
+  update public.households set invite_code = public.generate_invite_code(), code_expires_at = now() + interval '7 days' where id = public.my_household_id() returning * into h;
+  return h;
+end $$;
 
-drop policy if exists foyers_lire on public.foyers;
-create policy foyers_lire on public.foyers for select using (id = public.mon_foyer());
-drop policy if exists foyers_modifier on public.foyers;
-create policy foyers_modifier on public.foyers for update using (id = public.mon_foyer());
+-- Only the creator can remove another member; the invite code is renewed so the old one stops working.
+create or replace function public.remove_member(p_user_id uuid) returns public.households language plpgsql security definer set search_path = public as $$
+declare h public.households;
+begin
+  if auth.uid() is null then raise exception 'non connecté'; end if;
+  select * into h from public.households where id = public.my_household_id();
+  if h.id is null or h.created_by is distinct from auth.uid() then raise exception 'seul le créateur du foyer peut retirer un membre'; end if;
+  if p_user_id = auth.uid() then raise exception 'pour partir, quitte le foyer'; end if;
+  update public.members set household_id = null where user_id = p_user_id and household_id = h.id;
+  if not found then raise exception 'ce membre n''est pas dans le foyer'; end if;
+  update public.households set invite_code = public.generate_invite_code(), code_expires_at = now() + interval '7 days' where id = h.id returning * into h;
+  return h;
+end $$;
 
-drop policy if exists membres_lire on public.membres;
-create policy membres_lire on public.membres for select using (user_id = auth.uid() or (foyer_id is not null and foyer_id = public.mon_foyer()));
-drop policy if exists membres_modifier on public.membres;
-create policy membres_modifier on public.membres for update using (user_id = auth.uid());
+-- Row level security: each user only sees their own household.
+alter table public.households enable row level security;
+alter table public.members enable row level security;
+alter table public.items enable row level security;
+alter table public.meal_plans enable row level security;
 
-drop policy if exists articles_tout on public.articles;
-create policy articles_tout on public.articles for all using (foyer_id = public.mon_foyer()) with check (foyer_id = public.mon_foyer());
+drop policy if exists households_select on public.households;
+create policy households_select on public.households for select using (id = public.my_household_id());
+drop policy if exists households_update on public.households;
+create policy households_update on public.households for update using (id = public.my_household_id());
 
-drop policy if exists menus_tout on public.menus;
-create policy menus_tout on public.menus for all using (foyer_id = public.mon_foyer()) with check (foyer_id = public.mon_foyer());
+drop policy if exists members_select on public.members;
+create policy members_select on public.members for select using (user_id = auth.uid() or (household_id is not null and household_id = public.my_household_id()));
+drop policy if exists members_update on public.members;
+create policy members_update on public.members for update using (user_id = auth.uid());
 
--- Droits des rôles de l'API (certains projets ne les donnent pas par défaut). Les règles RLS ci-dessus font le tri ensuite.
+drop policy if exists items_all on public.items;
+create policy items_all on public.items for all using (household_id = public.my_household_id()) with check (household_id = public.my_household_id());
+
+drop policy if exists meal_plans_all on public.meal_plans;
+create policy meal_plans_all on public.meal_plans for all using (household_id = public.my_household_id()) with check (household_id = public.my_household_id());
+
+-- API role grants (some projects do not grant them by default). RLS filters rows afterwards.
 grant usage on schema public to anon, authenticated;
-grant select, insert, update, delete on public.foyers, public.membres, public.articles, public.menus to authenticated;
-grant execute on function public.mon_foyer(), public.nouveau_code(), public.creer_foyer(), public.rejoindre_foyer(text), public.quitter_foyer(), public.renouveler_code() to authenticated;
+grant select, insert, update, delete on public.households, public.members, public.items, public.meal_plans to authenticated;
+grant execute on function public.my_household_id(), public.generate_invite_code(), public.create_household(), public.join_household(text), public.leave_household(), public.renew_invite_code(), public.remove_member(uuid) to authenticated;
 alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
 
--- Temps réel : l'autre téléphone voit les changements sans recharger.
-do $$ begin
-  alter publication supabase_realtime add table public.articles;
-exception when duplicate_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.menus;
-exception when duplicate_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.membres;
-exception when duplicate_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.foyers;
-exception when duplicate_object then null; end $$;
-
--- ——— Créateur du foyer et retrait d'un membre (02/11/2026)
--- Le créateur peut retirer un autre membre ; le code est renouvelé pour qu'il ne puisse pas revenir avec l'ancien.
-alter table public.foyers add column if not exists cree_par uuid references auth.users(id) on delete set null;
--- Foyers existants : le plus ancien compte du foyer passe pour le créateur.
-update public.foyers f set cree_par = (select m.user_id from public.membres m where m.foyer_id = f.id order by m.created_at limit 1) where f.cree_par is null;
-
-create or replace function public.creer_foyer() returns public.foyers language plpgsql security definer set search_path = public as $$
-declare f public.foyers;
-begin
-  if auth.uid() is null then raise exception 'non connecté'; end if;
-  insert into public.foyers (code, cree_par) values (public.nouveau_code(), auth.uid()) returning * into f;
-  update public.membres set foyer_id = f.id where user_id = auth.uid();
-  return f;
-end $$;
-
--- Si le créateur s'en va, le membre restant le plus ancien prend la main.
-create or replace function public.quitter_foyer() returns void language plpgsql security definer set search_path = public as $$
-declare fid uuid := public.mon_foyer();
-begin
-  update public.membres set foyer_id = null where user_id = auth.uid();
-  update public.foyers set cree_par = (select user_id from public.membres where foyer_id = fid order by created_at limit 1)
-    where id = fid and cree_par = auth.uid();
-end $$;
-
-create or replace function public.retirer_membre(p_user uuid) returns public.foyers language plpgsql security definer set search_path = public as $$
-declare f public.foyers;
-begin
-  if auth.uid() is null then raise exception 'non connecté'; end if;
-  select * into f from public.foyers where id = public.mon_foyer();
-  if f.id is null or f.cree_par is distinct from auth.uid() then raise exception 'seul le créateur du foyer peut retirer un membre'; end if;
-  if p_user = auth.uid() then raise exception 'pour partir, quitte le foyer'; end if;
-  update public.membres set foyer_id = null where user_id = p_user and foyer_id = f.id;
-  if not found then raise exception 'ce membre n''est pas dans le foyer'; end if;
-  update public.foyers set code = public.nouveau_code(), code_expire_le = now() + interval '7 days' where id = f.id returning * into f;
-  return f;
-end $$;
-grant execute on function public.retirer_membre(uuid) to authenticated;
+-- Realtime: the other phone sees changes without reloading.
+do $$ begin alter publication supabase_realtime add table public.items; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.meal_plans; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.members; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.households; exception when duplicate_object then null; end $$;
