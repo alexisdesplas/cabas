@@ -206,12 +206,25 @@ button.row:active { background: var(--fond-discret); }
 .rond.pulse { animation: pulse 1.6s var(--ease) infinite; }
 @keyframes pulse { 50% { transform: scale(1.08); opacity: .8; } }
 
-/* Squelette du menu */
-.skeleton { display: flex; flex-direction: column; gap: var(--spacing-8); }
-.skeleton i { display: block; height: 10px; border-radius: var(--radius-sm); background: var(--fond-discret); animation: shimmer 1.4s var(--ease) infinite; }
-.skeleton i.t { height: 18px; width: 70%; }
-.skeleton i.s { width: 25%; }
-.skeleton i.d { width: 45%; }
+/* Squelette du menu : tuile + trois lignes, un reflet balaie chaque bloc de gauche à droite, décalé d'une carte à l'autre */
+.skeleton { flex-direction: row; align-items: center; gap: var(--spacing-12); }
+.skeleton-lignes { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--spacing-8); }
+.skeleton i { display: block; position: relative; overflow: hidden; height: 10px; border-radius: var(--radius-sm); background: var(--fond-discret); }
+.skeleton i::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .85) 50%, transparent 100%); animation: balayage 1.5s var(--ease) infinite; }
+.skeleton i.q { width: 56px; height: 56px; border-radius: var(--radius-md); flex: none; }
+.skeleton i.t { height: 18px; width: 72%; }
+.skeleton i.s { width: 28%; }
+.skeleton i.d { width: 48%; }
+.skeleton:nth-of-type(2) i::after { animation-delay: .2s; }
+.skeleton:nth-of-type(3) i::after { animation-delay: .4s; }
+@keyframes balayage { 60%, 100% { transform: translateX(100%); } }
+/* « Claude prépare » : la poêle se balance doucement sur un halo accent qui respire */
+.cuisson { position: relative; display: grid; place-items: center; width: 112px; height: 112px; }
+.cuisson::before { content: ""; position: absolute; inset: 4px; border-radius: var(--radius-full); background: var(--accent-soft); animation: halo 2s var(--ease) infinite; }
+.cuisson .tuile { position: relative; animation: poele 2s var(--ease) infinite; transform-origin: 50% 80%; }
+@keyframes halo { 0%, 100% { transform: scale(.9); opacity: .55; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes poele { 0%, 100% { transform: translateY(0) rotate(0deg); } 30% { transform: translateY(-5px) rotate(-5deg); } 70% { transform: translateY(-3px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .skeleton i::after, .cuisson::before, .cuisson .tuile { animation: none; } .skeleton i { animation: shimmer 1.4s var(--ease) infinite; } }
 @keyframes shimmer { 50% { opacity: .5; } }
 
 /* Carte repas (proposition locale) */

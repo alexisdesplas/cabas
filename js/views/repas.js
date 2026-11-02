@@ -107,13 +107,14 @@ function rappel() {
   return `${cap(parts.join(", "))}${parts.length ? ". " : ""}Ça prend une vingtaine de secondes.`;
 }
 
-const squelette = () => h("div", { class: "card skeleton" }, h("i", { class: "s" }), h("i", { class: "t" }), h("i", { class: "d" }));
+// Squelette d'une carte de plat : la tuile et trois lignes, balayées par un reflet (animation CSS).
+const squelette = () => h("div", { class: "card skeleton", "aria-hidden": "true" }, h("i", { class: "q" }), h("div", { class: "skeleton-lignes" }, h("i", { class: "s" }), h("i", { class: "t" }), h("i", { class: "d" })));
 
 function etatView() {
   const d = demande, n = d.repas;
   let body, sur, titre = "Repas";
   if (etat.phase === "prepare") { sur = `ENVOYÉ À ${new Date(etat.depuis || Date.now()).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`; body = [
-    h("div", { class: "card vide" }, tuile(illustrationCle("cooking"), 96, false),
+    h("div", { class: "card vide" }, h("span", { class: "cuisson" }, tuile(illustrationCle("cooking"), 96, false)),
       h("p", { class: "heading-md" }, `Claude prépare ${plural(n, "repas", "repas")} pour ${d.personnes}`), h("p", { class: "body-sm discret" }, rappel())),
     [1, 2, 3].map(squelette),
     btn("Annuler", { variant: "ghost", full: true, onClick: () => { etat = null; go("#/repas/formulaire"); notify(); } })]; }
