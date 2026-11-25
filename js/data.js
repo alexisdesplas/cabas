@@ -24,6 +24,20 @@ export const subscribe = fn => { listeners.add(fn); return () => listeners.delet
 export const notify = () => listeners.forEach(fn => fn());
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+// UUID v4 : crypto.randomUUID n'existe qu'en contexte sécurisé (HTTPS ou localhost). Sur http://192.168.x.x il est absent, et l'ajout plantait en silence.
+export const uuid = () => crypto.randomUUID?.() ?? (() => { const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80; const h = [...b].map(x => x.toString(16).padStart(2, "0")).join(""); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; })();
+// Avatars : une teinte par membre dans l'ordre d'arrivée dans le foyer (DA du 02/11/2026).
+// Invitation reçue par lien (#/rejoindre/CODE) : gardée dans la session le temps de créer son compte ou de se connecter.
+export const invitation = {
+  lire: () => sessionStorage.getItem("cabas-invitation") || "",
+  garder: code => { const c = (code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); if (c.length === 6) sessionStorage.setItem("cabas-invitation", `${c.slice(0, 3)}-${c.slice(3)}`); },
+  oublier: () => sessionStorage.removeItem("cabas-invitation"),
+  // Le lien que l'on partage : il ouvre l'app sur l'écran Rejoindre, code prérempli (le mode démo reste en démo).
+  lien: code => `${location.origin}${location.pathname}${DEMO ? "?demo" : ""}#/rejoindre/${code}`
+};
+export const TEINTES = ["indigo", "vert", "ambre", "rose"];
+export const teinteDe = id => { const ordre = [...state.membres].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); const i = ordre.findIndex(m => m.user_id === id); return TEINTES[(i < 0 ? ordre.length : i) % TEINTES.length]; };
+export const initialeDe = p => ((p || "?").trim()[0] || "?").toUpperCase();
 export const prenomDe = id => (id === state.user?.id ? "toi" : state.membres.find(m => m.user_id === id)?.prenom || "l'autre");
 export const lundi = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
 export const dateKey = d => new Date(d).toLocaleDateString("sv-SE");
@@ -69,7 +83,7 @@ const demo = {
   async signOut() { this.st.connecte = false; this.save(); this.pousser(); },
   async resetPassword() {}, async updatePassword() {},
   async creerFoyer() {
-    this.st.foyer = { id: uid(), nom: "Chez nous", code: "7KQ-4MZ", code_expire_le: new Date(Date.now() + 7 * 86400000).toISOString(), rayons: RAYONS_DEFAUT, created_at: new Date().toISOString(), elle: null };
+    this.st.foyer = { id: uid(), cree_par: "moi", nom: "Chez nous", code: "7KQ-4MZ", code_expire_le: new Date(Date.now() + 7 * 86400000).toISOString(), rayons: RAYONS_DEFAUT, created_at: new Date().toISOString(), elle: null };
     this.st.articles = []; this.save(); this.pousser();
     // Elle rejoint 6 s plus tard et ajoute un article : on voit le temps réel.
     setTimeout(() => { if (!this.st.foyer) return; this.st.foyer.elle = new Date().toISOString(); this.save(); this.pousser(); }, 6000);
@@ -80,9 +94,12 @@ const demo = {
     await this.creerFoyer();
   },
   async quitterFoyer() { this.st.foyer = null; this.save(); this.pousser(); },
+  async retirerMembre(id) { if (id === "elle") this.st.foyer.elle = null; this.st.foyer.code = "N3P-8RW"; this.save(); this.pousser(); },
   async renouvelerCode() { this.st.foyer.code = "N3P-8RW"; this.st.foyer.code_expire_le = new Date(Date.now() + 7 * 86400000).toISOString(); this.save(); this.pousser(); },
   async saveRayons(rayons) { this.st.foyer.rayons = rayons; this.save(); this.pousser(); },
-  async addArticle(a) { this.st.articles.push({ id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
+  async saveHabituels(h) { this.st.foyer.habituels = h; this.save(); },
+  async saveAchats(a) { this.st.foyer.achats = a; this.save(); },
+  async addArticle(a) { const art = { id: uid(), coche: false, ajoute_par: "moi", source: "", quantite: "", note: "", ...a, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }; this.st.articles.push(art); state.majLe = Date.now(); this.save(); this.pousser(); return art.id; },
   async updateArticle(id, patch) { Object.assign(this.st.articles.find(a => a.id === id), patch, { updated_at: new Date().toISOString() }); state.majLe = Date.now(); this.save(); this.pousser(); },
   async removeArticles(ids) { this.st.articles = this.st.articles.filter(a => !ids.includes(a.id)); state.majLe = Date.now(); this.save(); this.pousser(); },
   async saveMenu(menu) { this.st.menu = { id: uid(), created_at: new Date().toISOString(), ajoute: false, ...menu }; this.save(); this.pousser(); return this.st.menu; },
@@ -90,7 +107,7 @@ const demo = {
   async demanderMenu(demande) {
     await new Promise(r => setTimeout(r, 2500));
     if (demande.eviter?.toLowerCase().includes("panne")) throw new Error("Claude n'a pas répondu");
-    const ex = (jour, plat, temps, ings, etapes) => ({ jour, moment: "diner", plat, temps_min: temps, ingredients: ings.map(([nom, quantite, rayon, deja_la]) => ({ nom, quantite, rayon, deja_la: !!deja_la })), etapes });
+    const ex = (jour, plat, temps, ings, etapes) => ({ jour, plat, temps_min: temps, ingredients: ings.map(([nom, quantite, rayon, deja_la]) => ({ nom, quantite, rayon, deja_la: !!deja_la })), etapes });
     const tous = [
       ex("lundi", "Pâtes complètes au pesto et tomates cerises", 15, [["Pâtes complètes", "500 g", "Épicerie"], ["Pesto", "1 pot", "Épicerie"], ["Tomates cerises", "250 g", "Fruits et légumes"], ["Parmesan", "100 g", "Crèmerie"]], ["Cuire les pâtes 9 min.", "Couper les tomates cerises en deux.", "Mélanger pâtes, pesto et tomates, servir avec le parmesan."]),
       ex("mardi", "Gratin de courgettes au comté", 40, [["Courgettes", "3", "Fruits et légumes"], ["Comté", "200 g", "Crèmerie"], ["Crème fraîche", "20 cl", "Crèmerie"], ["Œufs", "", "Épicerie", true]], ["Émincer les courgettes, les faire revenir 10 min.", "Battre œufs et crème, ajouter le comté râpé.", "Verser sur les courgettes, 25 min au four à 200 °C."]),
@@ -100,14 +117,26 @@ const demo = {
       ex("samedi", "Dahl de lentilles corail et épinards", 25, [["Lentilles corail", "300 g", "Épicerie"], ["Épinards", "200 g", "Fruits et légumes"], ["Lait de coco", "1 boîte", "Épicerie"]], ["Cuire les lentilles 15 min dans le lait de coco et de l'eau.", "Ajouter les épinards 3 min.", "Servir avec du riz."]),
       ex("dimanche", "Risotto aux champignons", 35, [["Riz à risotto", "300 g", "Épicerie"], ["Champignons", "300 g", "Fruits et légumes"], ["Parmesan", "80 g", "Crèmerie"]], ["Faire revenir les champignons.", "Nacrer le riz, mouiller louche par louche 18 min.", "Finir avec le parmesan."])
     ];
-    if (demande.remplacer) return { repas: [tous.find(r => r.plat !== demande.remplacer.plat && !demande.autres?.includes(r.plat)) || tous[5]] };
-    const n = Math.min(7, (demande.diners || 0) + (demande.dejeuners || 0));
+    if (demande.modifier) { const r = tous.find(x => x.plat === demande.modifier.plat) || tous[3]; const rem = demande.modifier.remarque || ""; return { repas: [{ ...r, plat: /pour 4/i.test(rem) ? r.plat : `${r.plat} (${rem.split(",")[0].toLowerCase()})`, temps_min: /moins long|rapide/i.test(rem) ? Math.max(10, r.temps_min - 10) : r.temps_min, ingredients: r.ingredients.filter(x => !new RegExp(x.nom.split(" ")[0], "i").test(rem)).map(x => /pour 4/i.test(rem) && /^\d/.test(x.quantite) ? { ...x, quantite: x.quantite.replace(/^\d+/, n => String(n * 2)) } : x) }] }; }
+    if (demande.remplacer) return { repas: [tous.find(r => r.plat !== demande.remplacer.plat && !demande.autres?.includes(r.plat) && (!/poisson/i.test(demande.remplacer.souhait || "") || /risotto|omelette/i.test(r.plat))) || tous[5]] };
+    const n = Math.min(7, Number(demande.repas) || 0);
     return { repas: tous.slice(0, n) };
   },
   reprendre() {}
 };
 
 // ———————————————————————————————————————————— Supabase
+// La base est en anglais (règle du 02/11/2026) ; l'état de l'app garde ses noms. On traduit à la frontière, ici seulement.
+const COLONNES = {
+  households: { nom: "name", code: "invite_code", code_expire_le: "code_expires_at", rayons: "aisles", habituels: "frequent_items", achats: "recent_purchases", cree_par: "created_by" },
+  members: { foyer_id: "household_id", prenom: "first_name" },
+  items: { foyer_id: "household_id", nom: "name", quantite: "quantity", rayon: "aisle", coche: "is_checked", ajoute_par: "added_by" },
+  meal_plans: { foyer_id: "household_id", semaine: "week_start", demande: "request", repas: "meals", ajoute: "added_to_list" }
+};
+const INVERSE = Object.fromEntries(Object.entries(COLONNES).map(([t, m]) => [t, Object.fromEntries(Object.entries(m).map(([fr, en]) => [en, fr]))]));
+const versBase = (table, o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [COLONNES[table][k] || k, v]));
+const depuisBase = (table, o) => o && Object.fromEntries(Object.entries(o).map(([k, v]) => [INVERSE[table][k] || k, v]));
+
 const sb = {
   client: null, canal: null, file: [],
   async init() {
@@ -124,30 +153,33 @@ const sb = {
   },
   async charger() {
     if (!state.user) { Object.assign(state, { membre: null, foyer: null, membres: [], articles: [], menu: null, pret: true }); this.canal?.unsubscribe(); this.canal = null; notify(); return; }
-    const { data: membre } = await this.client.from("membres").select("*").eq("user_id", state.user.id).maybeSingle();
-    state.membre = membre || { user_id: state.user.id, prenom: "", foyer_id: null };
+    const { data: membre } = await this.client.from("members").select("*").eq("user_id", state.user.id).maybeSingle();
+    state.membre = depuisBase("members", membre) || { user_id: state.user.id, prenom: "", foyer_id: null };
     if (!state.membre.foyer_id) { Object.assign(state, { foyer: null, membres: [], articles: [], menu: null, pret: true }); notify(); return; }
+    const fid = state.membre.foyer_id;
     const [{ data: foyer }, { data: membres }, { data: articles }, { data: menus }] = await Promise.all([
-      this.client.from("foyers").select("*").eq("id", state.membre.foyer_id).single(),
-      this.client.from("membres").select("user_id, prenom, created_at").eq("foyer_id", state.membre.foyer_id).order("created_at"),
-      this.client.from("articles").select("*").eq("foyer_id", state.membre.foyer_id).order("created_at"),
-      this.client.from("menus").select("*").eq("foyer_id", state.membre.foyer_id).order("semaine", { ascending: false }).limit(1)
+      this.client.from("households").select("*").eq("id", fid).single(),
+      this.client.from("members").select("user_id, first_name, created_at").eq("household_id", fid).order("created_at"),
+      this.client.from("items").select("*").eq("household_id", fid).order("created_at"),
+      this.client.from("meal_plans").select("*").eq("household_id", fid).order("week_start", { ascending: false }).limit(1)
     ]);
-    state.foyer = foyer; state.membres = membres || []; state.articles = articles || []; state.menu = menus?.[0] || null; state.majLe = Date.now(); state.pret = true;
+    state.foyer = depuisBase("households", foyer); state.membres = (membres || []).map(m => depuisBase("members", m)); state.articles = (articles || []).map(a => depuisBase("items", a));
+    state.menu = depuisBase("meal_plans", menus?.[0]) || null; state.majLe = Date.now(); state.pret = true;
     this.ecouter(); notify();
   },
   ecouter() {
     if (this.canal) return;
     const f = state.membre.foyer_id;
-    this.canal = this.client.channel("foyer-" + f)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "articles", filter: `foyer_id=eq.${f}` }, p => {
-        if (p.new.ajoute_par && p.new.ajoute_par !== state.user.id) state.activite = { texte: `${prenomDe(p.new.ajoute_par)} vient d'ajouter ${p.new.nom} en ${p.new.rayon}.`, t: Date.now() };
+    this.canal = this.client.channel("household-" + f)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: `household_id=eq.${f}` }, p => {
+        const a = depuisBase("items", p.new);
+        if (a.ajoute_par && a.ajoute_par !== state.user.id) state.activite = { texte: `${prenomDe(a.ajoute_par)} vient d'ajouter ${a.nom} en ${a.rayon}.`, t: Date.now() };
         this.charger();
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "articles", filter: `foyer_id=eq.${f}` }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "menus", filter: `foyer_id=eq.${f}` }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "membres" }, () => this.charger())
-      .on("postgres_changes", { event: "*", schema: "public", table: "foyers", filter: `id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `household_id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "meal_plans", filter: `household_id=eq.${f}` }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "members" }, () => this.charger())
+      .on("postgres_changes", { event: "*", schema: "public", table: "households", filter: `id=eq.${f}` }, () => this.charger())
       .subscribe();
   },
   // Hors ligne : on applique localement, on garde l'ordre à envoyer, on rejoue au retour du réseau.
@@ -161,41 +193,46 @@ const sb = {
     for (const fn of file) { try { await fn(); } catch {} }
     state.enAttente = 0; await this.charger();
   },
-  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; return m || "Erreur inattendue."; },
+  erreur(e) { const m = e?.message || ""; if (/Invalid login/i.test(m)) return "E-mail ou mot de passe incorrect."; if (/already registered/i.test(m)) return "Un compte existe déjà avec cet e-mail : connecte-toi."; if (/Password should/i.test(m)) return "8 caractères au moins."; if (/code inconnu/i.test(m)) return "Code inconnu ou expiré. Demande-lui un nouveau code depuis son onglet Foyer."; if (/Email not confirmed/i.test(m)) return "Valide d'abord ton adresse : suis le lien reçu par e-mail."; if (/seul le créateur|quitte le foyer|pas dans le foyer/i.test(m)) return m.charAt(0).toUpperCase() + m.slice(1) + "."; if (/rate limit/i.test(m)) return "Trop d'e-mails envoyés : Supabase en limite 2 par heure. Réessaie dans une heure, ou cherche le précédent dans les indésirables."; return m || "Erreur inattendue."; },
   async signUp(prenom, email, mdp) {
-    const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { prenom }, emailRedirectTo: location.origin + location.pathname } });
+    const { data, error } = await this.client.auth.signUp({ email, password: mdp, options: { data: { first_name: prenom }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw new Error(this.erreur(error));
     return { aValider: !data.session };
   },
   async signIn(email, mdp) { const { error } = await this.client.auth.signInWithPassword({ email, password: mdp }); if (error) throw new Error(this.erreur(error)); },
   async signOut() { await this.client.auth.signOut(); },
-  async resetPassword(email) { const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname + "#/compte/mot-de-passe" }); if (error) throw new Error(this.erreur(error)); },
+  // Pas de #route dans redirectTo : Supabase colle #access_token=… derrière, et le jeton ne serait plus lu. L'événement PASSWORD_RECOVERY (plus haut) ouvre l'écran du mot de passe.
+  async resetPassword(email) { const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (error) throw new Error(this.erreur(error)); },
   async updatePassword(mdp) { const { error } = await this.client.auth.updateUser({ password: mdp }); if (error) throw new Error(this.erreur(error)); },
   async rpc(nom, args) { const { data, error } = await this.client.rpc(nom, args); if (error) throw new Error(this.erreur(error)); return data; },
-  async creerFoyer() { await this.rpc("creer_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async rejoindreFoyer(code) { await this.rpc("rejoindre_foyer", { p_code: code }); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async quitterFoyer() { await this.rpc("quitter_foyer"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
-  async renouvelerCode() { await this.rpc("renouveler_code"); await this.charger(); },
-  async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("foyers").update({ rayons }).eq("id", state.foyer.id)); },
+  async creerFoyer() { await this.rpc("create_household"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async rejoindreFoyer(code) { await this.rpc("join_household", { p_code: code }); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async quitterFoyer() { await this.rpc("leave_household"); this.canal?.unsubscribe(); this.canal = null; await this.charger(); },
+  async retirerMembre(id) { await this.rpc("remove_member", { p_user_id: id }); await this.charger(); },
+  async renouvelerCode() { await this.rpc("renew_invite_code"); await this.charger(); },
+  async saveRayons(rayons) { state.foyer.rayons = rayons; notify(); await this.envoyer(() => this.client.from("households").update({ aisles: rayons }).eq("id", state.foyer.id)); },
+  async saveHabituels(habituels) { await this.envoyer(() => this.client.from("households").update({ frequent_items: habituels }).eq("id", state.foyer.id)); },
+  async saveAchats(achats) { await this.envoyer(() => this.client.from("households").update({ recent_purchases: achats }).eq("id", state.foyer.id)); },
   async addArticle(a) {
-    const row = { id: crypto.randomUUID(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
+    const row = { id: uuid(), foyer_id: state.foyer.id, ajoute_par: state.user.id, coche: false, quantite: "", source: "", note: "", ...a };
     state.articles.push({ ...row, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); notify();
-    await this.envoyer(() => this.client.from("articles").insert(row));
+    await this.envoyer(() => this.client.from("items").insert(versBase("items", row)));
+    return row.id;
   },
   async updateArticle(id, patch) {
     Object.assign(state.articles.find(a => a.id === id) || {}, patch); notify();
-    await this.envoyer(() => this.client.from("articles").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id));
+    await this.envoyer(() => this.client.from("items").update(versBase("items", { ...patch, updated_at: new Date().toISOString() })).eq("id", id));
   },
   async removeArticles(ids) {
     state.articles = state.articles.filter(a => !ids.includes(a.id)); notify();
-    await this.envoyer(() => this.client.from("articles").delete().in("id", ids));
+    await this.envoyer(() => this.client.from("items").delete().in("id", ids));
   },
   async saveMenu(menu) {
-    const { data, error } = await this.client.from("menus").insert({ foyer_id: state.foyer.id, ...menu }).select().single();
+    const { data, error } = await this.client.from("meal_plans").insert(versBase("meal_plans", { foyer_id: state.foyer.id, ...menu })).select().single();
     if (error) throw new Error(error.message);
-    state.menu = data; notify(); return data;
+    state.menu = depuisBase("meal_plans", data); notify(); return state.menu;
   },
-  async updateMenu(patch) { Object.assign(state.menu, patch); notify(); await this.envoyer(() => this.client.from("menus").update(patch).eq("id", state.menu.id)); },
+  async updateMenu(patch) { Object.assign(state.menu, patch); notify(); await this.envoyer(() => this.client.from("meal_plans").update(versBase("meal_plans", patch)).eq("id", state.menu.id)); },
   async demanderMenu(demande) {
     const { data: { session } } = await this.client.auth.getSession();
     const r = await fetch("/api/repas", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify(demande) });
@@ -209,13 +246,44 @@ export const init = () => moteur.init();
 // « Synchroniser » : relit tout depuis le serveur (en démo, relit le localStorage).
 export const synchroniser = async () => { if (moteur.charger) await moteur.charger(); else moteur.pousser(); state.majLe = Date.now(); notify(); };
 export const auth = { signUp: (p, e, m) => moteur.signUp(p, e, m), signIn: (e, m) => moteur.signIn(e, m), signOut: () => moteur.signOut(), resetPassword: e => moteur.resetPassword(e), updatePassword: m => moteur.updatePassword(m) };
-export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
+export const foyer = { creer: () => moteur.creerFoyer(), rejoindre: c => moteur.rejoindreFoyer(c), quitter: () => moteur.quitterFoyer(), retirer: id => moteur.retirerMembre(id), renouvelerCode: () => moteur.renouvelerCode(), saveRayons: r => moteur.saveRayons(r) };
+// Habituels du foyer : compteur par article ajouté à la main (pas ceux du menu), gardé dans foyers.habituels (jsonb).
+// Sert à l'écran Ajouter : « Habituels » et « Derniers ajouts ». Au pire, si la colonne manque, l'ajout marche quand même.
+export const habituels = () => Object.values(state.foyer?.habituels || {});
+const noterHabituel = async ({ nom, rayon }) => {
+  if (!state.foyer) return;
+  const k = norm(nom), h = { ...(state.foyer.habituels || {}) }, prev = h[k];
+  h[k] = { nom, rayon, n: (prev?.n || 0) + 1, le: new Date().toISOString() };
+  state.foyer.habituels = h;
+  try { await moteur.saveHabituels(h); } catch (e) { console.warn("habituels non enregistrés :", e.message); }
+};
+const retirerHabituel = async nom => {
+  const k = norm(nom), h = { ...(state.foyer?.habituels || {}) };
+  if (!h[k]) return;
+  if (h[k].n > 1) h[k] = { ...h[k], n: h[k].n - 1 }; else delete h[k];
+  state.foyer.habituels = h;
+  try { await moteur.saveHabituels(h); } catch {}
+};
+// Achats : ce qui a été coché puis sorti de la liste (« Terminer les courses », « Vider le panier »), gardé dans foyers.achats
+// (jsonb nom normalisé → { nom, rayon, le }). Sert au formulaire Repas : « déjà dans les placards » précoché.
+export const achats = () => Object.values(state.foyer?.achats || {});
+const noterAchats = async liste => {
+  if (!state.foyer || !liste.length) return;
+  const h = { ...(state.foyer.achats || {}) }, le = new Date().toISOString();
+  for (const a of liste) h[norm(a.nom)] = { nom: a.nom, rayon: a.rayon, le };
+  // On garde les 60 plus récents : assez pour trois semaines de courses.
+  const garde = Object.entries(h).sort((x, y) => new Date(y[1].le) - new Date(x[1].le)).slice(0, 60);
+  state.foyer.achats = Object.fromEntries(garde);
+  try { await moteur.saveAchats(state.foyer.achats); } catch (e) { console.warn("achats non enregistrés :", e.message); }
+};
 export const articles = {
-  add: a => moteur.addArticle(a),
+  add: async a => { const id = await moteur.addArticle(a); noterHabituel(a); return id; },
+  // « Annuler » juste après un ajout : l'article et sa trace dans les habituels s'en vont.
+  annulerAjout: async (id, nom) => { await moteur.removeArticles([id]); await retirerHabituel(nom); },
   update: (id, patch) => moteur.updateArticle(id, patch),
   toggle: id => { const a = state.articles.find(x => x.id === id); return moteur.updateArticle(id, { coche: !a.coche }); },
   remove: id => moteur.removeArticles([id]),
-  viderPanier: () => moteur.removeArticles(state.articles.filter(a => a.coche).map(a => a.id)),
+  viderPanier: async () => { const coches = state.articles.filter(a => a.coche); await moteur.removeArticles(coches.map(a => a.id)); noterAchats(coches); },
   decocherTout: async () => { for (const a of state.articles.filter(a => a.coche)) await moteur.updateArticle(a.id, { coche: false }); }
 };
 export const menus = {
